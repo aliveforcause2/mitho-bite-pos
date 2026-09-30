@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "507438841712",
+    "project_id": "gir-projects",
+    "storage_bucket": "gir-projects.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:507438841712:android:e86b03e0e9d370d3fe19b5",
+        "android_client_info": {
+          "package_name": "com.iproject.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "507438841712-i267t8rkjdf8e6u5l78ou7q1ep5dek3j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDip5BRSE9NY9izlMo7qj5bfQTr_WNPpCY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "507438841712-i267t8rkjdf8e6u5l78ou7q1ep5dek3j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:507438841712:android:d32600856b62e65afe19b5",
+        "android_client_info": {
+          "package_name": "com.mithobite.pos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "507438841712-i267t8rkjdf8e6u5l78ou7q1ep5dek3j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDip5BRSE9NY9izlMo7qj5bfQTr_WNPpCY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "507438841712-i267t8rkjdf8e6u5l78ou7q1ep5dek3j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
