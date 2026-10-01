@@ -1,12 +1,8 @@
 // lib/screens/order_review_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/table_model.dart';
-import '../models/order_model.dart';
 import '../providers/pos_provider.dart';
-import '../widgets/kot_slip_dialog.dart';
-import '../widgets/thermal_receipt_dialog.dart';
 
 class OrderReviewScreen extends StatefulWidget {
   final TableModel table;
@@ -28,19 +24,23 @@ class _OrderReviewScreenState extends State<OrderReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final pos = context.watch<PosProvider>();
+    final cartItems = pos.getCartForTable(widget.table.tableNumber);
+    final subtotal = pos.getTableCartSubtotal(widget.table.tableNumber);
+    final vat = pos.profile.isPanEnabled ? (subtotal * (pos.profile.vatRate / 100.0)) : 0.0;
+    final grandTotal = subtotal + vat;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E293B),
-        title: Text('Table #${widget.table.tableNumber} - Order Review & Push', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Table #${widget.table.tableNumber} - Order Review', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ordered Items Card
+            // Items Card
             Card(
               color: const Color(0xFF1E293B),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -51,36 +51,41 @@ class _OrderReviewScreenState extends State<OrderReviewScreen> {
                   children: [
                     const Text('Order Items Summary', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                     const Divider(color: Colors.white24),
-                    ...pos.cart.map((item) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(6)),
-                                child: Text('${item.quantity}x', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(item.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                    if (item.specialInstructions != null)
-                                      Text('Note: ${item.specialInstructions}', style: const TextStyle(color: Colors.amber, fontSize: 11)),
-                                  ],
+                    if (cartItems.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text('No items in cart for this table.', style: TextStyle(color: Colors.white54)),
+                      )
+                    else
+                      ...cartItems.map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(color: const Color(0xFFF59E0B), borderRadius: BorderRadius.circular(6)),
+                                  child: Text('${item.quantity}x', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
                                 ),
-                              ),
-                              Text('Rs. ${(item.price * item.quantity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        )),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(item.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                      if (item.specialInstructions != null && item.specialInstructions!.isNotEmpty)
+                                        Text('Note: ${item.specialInstructions}', style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 11)),
+                                    ],
+                                  ),
+                                ),
+                                Text('Rs. ${(item.price * item.quantity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          )),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
-
             // Chef Special Instructions Box
             Card(
               color: const Color(0xFF1E293B),
@@ -96,20 +101,18 @@ class _OrderReviewScreenState extends State<OrderReviewScreen> {
                       controller: _noteController,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: 'e.g. Extra spicy momo achar, pack leftovers, serve dessert later...',
+                        hintText: 'e.g. Extra spicy momo achar, serve fast...',
                         hintStyle: const TextStyle(color: Colors.white38),
                         filled: true,
                         fillColor: const Color(0xFF0F172A),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       ),
-                      onChanged: (v) => pos.setKitchenNote(v),
                     ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
-
             // Bill Breakdown
             Card(
               color: const Color(0xFF1E293B),
@@ -118,38 +121,40 @@ class _OrderReviewScreenState extends State<OrderReviewScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _billRow('Subtotal', 'Rs. ${pos.cartSubtotal.toStringAsFixed(2)}'),
-                    _billRow('13% Nepal VAT', 'Rs. ${pos.cartVatAmount.toStringAsFixed(2)}'),
+                    _billRow('Subtotal', 'Rs. ${subtotal.toStringAsFixed(2)}'),
+                    _billRow('${pos.profile.vatRate.toStringAsFixed(0)}% Nepal VAT', 'Rs. ${vat.toStringAsFixed(2)}'),
                     const Divider(color: Colors.white24),
-                    _billRow('TOTAL PAYABLE', 'Rs. ${pos.cartGrandTotal.toStringAsFixed(2)}', isBold: true, color: Colors.amber),
+                    _billRow('TOTAL ESTIMATE', 'Rs. ${grandTotal.toStringAsFixed(2)}', isBold: true, color: const Color(0xFFF59E0B)),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 24),
-
             // Send to Kitchen Button
             SizedBox(
               width: double.infinity,
-              height: 54,
+              height: 52,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF10B981),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                onPressed: pos.isLoading
+                onPressed: pos.isLoading || cartItems.isEmpty
                     ? null
                     : () async {
-                        final success = await pos.sendOrderToKitchen();
+                        final success = await pos.sendKOTToKitchen(
+                          widget.table.tableNumber,
+                          kitchenNote: _noteController.text.trim().isNotEmpty ? _noteController.text.trim() : null,
+                        );
                         if (success && context.mounted) {
                           _showSuccessDialog(context);
                         }
                       },
                 icon: pos.isLoading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white))
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.send_rounded, color: Colors.white),
                 label: Text(
-                  pos.isLoading ? 'DISPATCHING TO FIRESTORE...' : 'SEND TO KITCHEN (PUSH ORDER)',
+                  pos.isLoading ? 'SENDING ORDER...' : 'SEND TO KITCHEN (PUSH KOT)',
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ),
@@ -184,21 +189,21 @@ class _OrderReviewScreenState extends State<OrderReviewScreen> {
           children: [
             Icon(Icons.check_circle, color: Color(0xFF10B981)),
             SizedBox(width: 8),
-            Text('Order Dispatched!', style: TextStyle(color: Colors.white)),
+            Text('Order Sent to Kitchen!', style: TextStyle(color: Colors.white)),
           ],
         ),
         content: Text(
-          'Table #${widget.table.tableNumber} is now Occupied. Order has been sent to the Kitchen Display System and inventory counts have been deducted in real-time.',
+          'Table #${widget.table.tableNumber} order has been sent to the Kitchen Display System (KDS).',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-              Navigator.pop(context);
+              Navigator.pop(context); // close dialog
+              Navigator.pop(context); // close review
+              Navigator.pop(context); // back to floor plan
             },
-            child: const Text('Back to Floor Plan'),
+            child: const Text('Back to Floor Plan', style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
