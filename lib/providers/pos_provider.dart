@@ -12,10 +12,14 @@ import '../services/pos_firestore_service.dart';
 class PosProvider extends ChangeNotifier {
   final PosFirestoreService _firestoreService = PosFirestoreService();
 
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
   List<TableModel> _tables = [];
   List<MenuItem> _menuItems = [];
   List<OrderModel> _orders = [];
   List<SupplierModel> _suppliers = [];
+  List<PurchaseEntry> _purchases = [];
   List<ExpenseModel> _expenses = [];
 
   List<String> _rooms = [
@@ -71,6 +75,7 @@ class PosProvider extends ChangeNotifier {
   List<MenuItem> get menuItems => _menuItems;
   List<OrderModel> get orders => _orders;
   List<SupplierModel> get suppliers => _suppliers;
+  List<PurchaseEntry> get purchases => _purchases;
   List<ExpenseModel> get expenses => _expenses;
   List<String> get rooms => _rooms;
   List<String> get staffList => _staffList;
@@ -83,7 +88,51 @@ class PosProvider extends ChangeNotifier {
   List<OrderModel> get activeOrders =>
       _orders.where((o) => o.status != OrderStatus.paid && o.status != OrderStatus.cancelled).toList();
 
+  List<OrderModel> get paidOrders =>
+      _orders.where((o) => o.status == OrderStatus.paid).toList();
+
   int get cartCount => _tableCarts.values.fold(0, (sum, list) => sum + list.length);
+
+  // Financial Getters for Accounting & Sales Reports
+  double get totalSalesToday => paidOrders.fold(0.0, (sum, o) => sum + o.totalAmount);
+  double get grossSalesToday => totalSalesToday;
+  double get netRevenueToday => paidOrders.fold(0.0, (sum, o) => sum + o.subtotal - o.discountAmount);
+  double get vatCollectedToday => paidOrders.fold(0.0, (sum, o) => sum + o.taxAmount);
+  double get totalDiscountsToday => paidOrders.fold(0.0, (sum, o) => sum + o.discountAmount);
+
+  double get totalPurchasesToday => _purchases.fold(0.0, (sum, p) => sum + p.totalAmount);
+  double get totalExpensesToday => _expenses.fold(0.0, (sum, e) => sum + e.amount);
+
+  double get netProfitToday => totalSalesToday - (totalPurchasesToday + totalExpensesToday);
+
+  double get cashSales => paidOrders
+      .where((o) => (o.paymentMethod ?? '').toLowerCase().contains('cash') || o.isSplitPayment)
+      .fold(0.0, (sum, o) => sum + (o.isSplitPayment ? o.splitCashAmount : o.totalAmount));
+
+  double get digitalSales => paidOrders
+      .where((o) => !(o.paymentMethod ?? '').toLowerCase().contains('cash') || o.isSplitPayment)
+      .fold(0.0, (sum, o) => sum + (o.isSplitPayment ? o.splitDigitalAmount : o.totalAmount));
+
+  Map<String, double> get paymentChannelBreakdown {
+    final map = <String, double>{
+      'Cash': 0.0,
+      'eSewa': 0.0,
+      'Khalti': 0.0,
+      'Fonepay': 0.0,
+      'Card': 0.0,
+    };
+    for (final o in paidOrders) {
+      if (o.isSplitPayment) {
+        map['Cash'] = (map['Cash'] ?? 0.0) + o.splitCashAmount;
+        final w = o.splitDigitalWallet ?? 'eSewa';
+        map[w] = (map[w] ?? 0.0) + o.splitDigitalAmount;
+      } else {
+        final m = o.paymentMethod ?? 'Cash';
+        map[m] = (map[m] ?? 0.0) + o.totalAmount;
+      }
+    }
+    return map;
+  }
 
   void selectTable(TableModel table) {
     _selectedTable = table;
@@ -95,15 +144,28 @@ class PosProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addRoomSection(String roomName) {
-    if (!_rooms.contains(roomName)) {
-      _rooms.add(roomName);
-      notifyListeners();
-    }
-  }
-
-  void removeRoomSection(String roomName) {
-    _rooms.remove(roomName);
+  void updateProfile({
+    String? restaurantName,
+    String? ownerName,
+    String? phone,
+    String? email,
+    String? panVatNumber,
+    String? address,
+    double? serviceChargeRate,
+    double? vatRate,
+    bool? isPanEnabled,
+  }) {
+    _profile = _profile.copyWith(
+      restaurantName: restaurantName,
+      ownerName: ownerName,
+      phone: phone,
+      email: email,
+      panVatNumber: panVatNumber,
+      address: address,
+      serviceChargeRate: serviceChargeRate,
+      vatRate: vatRate,
+      isPanEnabled: isPanEnabled,
+    );
     notifyListeners();
   }
 
@@ -149,6 +211,7 @@ class PosProvider extends ChangeNotifier {
         spicyLevel: 2,
         prepTimeMinutes: 10,
         rating: 4.9,
+        stockQuantity: 45,
         description: 'Authentic juicy steamed buffalo meat dumplings served with spicy tomato sesame achar.',
         imageUrl: 'https://images.unsplash.com/photo-1625398407796-82650a8c135f?w=600&auto=format&fit=crop&q=80',
       ),
@@ -163,6 +226,7 @@ class PosProvider extends ChangeNotifier {
         spicyLevel: 1,
         prepTimeMinutes: 12,
         rating: 4.8,
+        stockQuantity: 30,
         description: 'Crispy fried cottage cheese & fresh green herbs momo with mint chutney.',
         imageUrl: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&auto=format&fit=crop&q=80',
       ),
@@ -177,6 +241,7 @@ class PosProvider extends ChangeNotifier {
         spicyLevel: 3,
         prepTimeMinutes: 12,
         rating: 4.9,
+        stockQuantity: 25,
         description: 'Steamed chicken momo submerged in hot, sour & spicy sesame soybean gravy soup.',
         imageUrl: 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&auto=format&fit=crop&q=80',
       ),
@@ -191,6 +256,7 @@ class PosProvider extends ChangeNotifier {
         spicyLevel: 2,
         prepTimeMinutes: 10,
         rating: 4.7,
+        stockQuantity: 40,
         description: 'Wok-tossed noodles with shredded chicken breast, bell peppers and mountain spices.',
         imageUrl: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=600&auto=format&fit=crop&q=80',
       ),
@@ -205,6 +271,7 @@ class PosProvider extends ChangeNotifier {
         spicyLevel: 2,
         prepTimeMinutes: 15,
         rating: 5.0,
+        stockQuantity: 18,
         description: 'Traditional Newari feast with Baji (beaten rice), Chhwela, Choila, Achar & Bhatmas.',
         imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80',
       ),
@@ -219,6 +286,7 @@ class PosProvider extends ChangeNotifier {
         spicyLevel: 2,
         prepTimeMinutes: 15,
         rating: 4.9,
+        stockQuantity: 22,
         description: 'Authentic Mustang Thakali set with organic Jimbu scented black lentils and local goat curry.',
         imageUrl: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=600&auto=format&fit=crop&q=80',
       ),
@@ -233,6 +301,7 @@ class PosProvider extends ChangeNotifier {
         spicyLevel: 0,
         prepTimeMinutes: 5,
         rating: 4.8,
+        stockQuantity: 100,
         description: 'Creamy milk tea brewed with cardamom, clove, cinnamon & fresh ginger.',
         imageUrl: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80',
       ),
@@ -247,6 +316,7 @@ class PosProvider extends ChangeNotifier {
         spicyLevel: 0,
         prepTimeMinutes: 5,
         rating: 4.9,
+        stockQuantity: 35,
         description: 'Rich curd blended with sweet Terai mango pulp and crushed pistachios.',
         imageUrl: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=600&auto=format&fit=crop&q=80',
       ),
@@ -285,17 +355,39 @@ class PosProvider extends ChangeNotifier {
         serverName: 'Pooja Gurung',
         kitchenNote: 'Less oil in baji',
       ),
+      OrderModel(
+        orderId: 'ORD-1000',
+        tableNumber: 1,
+        itemsList: [
+          OrderItem(menuItemId: 'curry-01', name: 'Himalayan Thakali Mutton Thali', quantity: 2, price: 650),
+        ],
+        subtotal: 1300,
+        taxAmount: 169,
+        totalAmount: 1469,
+        status: OrderStatus.paid,
+        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
+        serverName: 'Aayush Thapa',
+        cookName: 'Chef Suman Tamang',
+        paymentMethod: 'eSewa',
+        transactionRef: 'ESEWA-992384',
+        settledAt: DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+      ),
     ];
 
     _suppliers = [
-      SupplierModel(id: 'SUP-01', supplierName: 'Kalimati Fresh Veggies', contactPerson: 'Govinda KC', phone: '+977-9841223344', category: 'Vegetables & Spices', totalPurchased: 24500, outstandingBalance: 4500),
-      SupplierModel(id: 'SUP-02', supplierName: 'Himalayan Poultry Meat', contactPerson: 'Ram Shrestha', phone: '+977-9851098765', category: 'Chicken & Buffalo Meat', totalPurchased: 48000, outstandingBalance: 8000),
-      SupplierModel(id: 'SUP-03', supplierName: 'Dairy Star Milk & Paneer', contactPerson: 'Sita Maharjan', phone: '+977-9801122334', category: 'Dairy & Cheese', totalPurchased: 18000, outstandingBalance: 0),
+      SupplierModel(id: 'SUP-01', name: 'Kalimati Fresh Veggies', contactPerson: 'Govinda KC', phone: '+977-9841223344', category: 'Vegetables & Spices', totalPurchased: 24500, outstandingBalance: 4500),
+      SupplierModel(id: 'SUP-02', name: 'Himalayan Poultry Meat', contactPerson: 'Ram Shrestha', phone: '+977-9851098765', category: 'Chicken & Buffalo Meat', totalPurchased: 48000, outstandingBalance: 8000),
+      SupplierModel(id: 'SUP-03', name: 'Dairy Star Milk & Paneer', contactPerson: 'Sita Maharjan', phone: '+977-9801122334', category: 'Dairy & Cheese', totalPurchased: 18000, outstandingBalance: 0),
+    ];
+
+    _purchases = [
+      PurchaseEntry(id: 'PUR-01', supplierName: 'Kalimati Fresh Veggies', itemName: 'Fresh Onions, Tomatoes & Greens', quantity: 35, unit: 'kg', rate: 120, totalAmount: 4200, invoiceNumber: 'INV-KAL-901', date: DateTime.now()),
+      PurchaseEntry(id: 'PUR-02', supplierName: 'Himalayan Poultry Meat', itemName: 'Fresh Boneless Chicken & Mutton', quantity: 20, unit: 'kg', rate: 450, totalAmount: 9000, invoiceNumber: 'INV-HIM-442', date: DateTime.now()),
     ];
 
     _expenses = [
-      ExpenseModel(id: 'EXP-01', expenseTitle: 'Nepal Gas LPG Cylinder (x2)', category: 'Gas & Kitchen Utilities', amount: 3800, date: 'Today', paidBy: 'Cash', note: 'Kitchen replenishment'),
-      ExpenseModel(id: 'EXP-02', expenseTitle: 'Electricity & Internet Bill', category: 'Utilities', amount: 4200, date: 'Yesterday', paidBy: 'eSewa', note: 'NEA & WorldLink bill'),
+      ExpenseModel(id: 'EXP-01', title: 'Nepal Gas LPG Cylinder (x2)', category: 'Gas & Kitchen Utilities', amount: 3800, paymentMethod: 'Cash', date: DateTime.now(), note: 'Kitchen replenishment'),
+      ExpenseModel(id: 'EXP-02', title: 'Electricity & Internet Bill', category: 'Utilities', amount: 4200, paymentMethod: 'eSewa', date: DateTime.now().subtract(const Duration(days: 1)), note: 'NEA & WorldLink bill'),
     ];
   }
 
@@ -336,6 +428,18 @@ class PosProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> sendKOTToKitchen(int tableNumber, {String? kitchenNote, String? serverName}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(const Duration(milliseconds: 350));
+    createOrderForTable(tableNumber: tableNumber, kitchenNote: kitchenNote, serverName: serverName);
+
+    _isLoading = false;
+    notifyListeners();
+    return true;
+  }
+
   void createOrderForTable({
     required int tableNumber,
     required String? kitchenNote,
@@ -366,7 +470,7 @@ class PosProvider extends ChangeNotifier {
 
     final tableIndex = _tables.indexWhere((t) => t.tableNumber == tableNumber);
     if (tableIndex >= 0) {
-      _tables[tableIndex] = _tables[tableIndex].copyWith(isAvailable: false, status: TableStatus.occupied);
+      _tables[tableIndex] = _tables[tableIndex].copyWith(status: TableStatus.occupied, isAvailable: false);
     }
 
     notifyListeners();
@@ -422,13 +526,28 @@ class PosProvider extends ChangeNotifier {
 
     final tableIndex = _tables.indexWhere((t) => t.tableNumber == tableNumber);
     if (tableIndex >= 0) {
-      _tables[tableIndex] = _tables[tableIndex].copyWith(isAvailable: true, status: TableStatus.available);
+      _tables[tableIndex] = _tables[tableIndex].copyWith(status: TableStatus.available, isAvailable: true);
     }
 
     notifyListeners();
   }
 
-  void addNewMenuItem(MenuItem item) {
+  void addPurchase(PurchaseEntry entry) {
+    _purchases.insert(0, entry);
+    notifyListeners();
+  }
+
+  void addSupplier(SupplierModel supplier) {
+    _suppliers.insert(0, supplier);
+    notifyListeners();
+  }
+
+  void addExpense(ExpenseModel expense) {
+    _expenses.insert(0, expense);
+    notifyListeners();
+  }
+
+  void addMenuItem(MenuItem item) {
     _menuItems.insert(0, item);
     notifyListeners();
   }
@@ -443,6 +562,75 @@ class PosProvider extends ChangeNotifier {
 
   void deleteMenuItem(String id) {
     _menuItems.removeWhere((m) => m.id == id);
+    notifyListeners();
+  }
+
+  void toggleItemAvailability(String id, bool isAvailable) {
+    final index = _menuItems.indexWhere((m) => m.id == id);
+    if (index >= 0) {
+      _menuItems[index] = _menuItems[index].copyWith(isAvailable: isAvailable);
+      notifyListeners();
+    }
+  }
+
+  void restockMenuItem(String id, int addedQuantity) {
+    final index = _menuItems.indexWhere((m) => m.id == id);
+    if (index >= 0) {
+      _menuItems[index] = _menuItems[index].copyWith(
+        stockQuantity: _menuItems[index].stockQuantity + addedQuantity,
+        isAvailable: true,
+      );
+      notifyListeners();
+    }
+  }
+
+  void freeTable(int tableNumber) {
+    final index = _tables.indexWhere((t) => t.tableNumber == tableNumber);
+    if (index >= 0) {
+      _tables[index] = _tables[index].copyWith(status: TableStatus.available, isAvailable: true);
+      notifyListeners();
+    }
+  }
+
+  void addTable(TableModel table) {
+    _tables.add(table);
+    notifyListeners();
+  }
+
+  void deleteTable(int tableNumber) {
+    _tables.removeWhere((t) => t.tableNumber == tableNumber);
+    notifyListeners();
+  }
+
+  void addRoom(String roomName) {
+    addRoomSection(roomName);
+  }
+
+  void addRoomSection(String roomName) {
+    if (!_rooms.contains(roomName)) {
+      _rooms.add(roomName);
+      notifyListeners();
+    }
+  }
+
+  void removeRoomSection(String roomName) {
+    _rooms.remove(roomName);
+    notifyListeners();
+  }
+
+  void bookTable(int tableNumber, {String? customerName, String? customerPhone, String? bookingTime}) {
+    final index = _tables.indexWhere((t) => t.tableNumber == tableNumber);
+    if (index >= 0) {
+      _tables[index] = _tables[index].copyWith(status: TableStatus.reserved, isAvailable: false);
+      notifyListeners();
+    }
+  }
+
+  Future<void> performDayClose() async {
+    _isLoading = true;
+    notifyListeners();
+    await Future.delayed(const Duration(milliseconds: 500));
+    _isLoading = false;
     notifyListeners();
   }
 }

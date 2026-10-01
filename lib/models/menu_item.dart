@@ -14,6 +14,7 @@ class MenuItem {
   final int spicyLevel; // 0: None, 1: Mild, 2: Medium, 3: Hot
   final int prepTimeMinutes;
   final double rating;
+  final int stockQuantity;
 
   MenuItem({
     required this.id,
@@ -30,7 +31,11 @@ class MenuItem {
     this.spicyLevel = 0,
     this.prepTimeMinutes = 12,
     this.rating = 4.8,
+    this.stockQuantity = 50,
   });
+
+  bool get isLowStock => stockQuantity > 0 && stockQuantity <= 10;
+  bool get isOutOfStock => !isAvailable || stockQuantity <= 0;
 
   factory MenuItem.fromMap(Map<String, dynamic> map, {String? docId}) {
     return MenuItem(
@@ -48,6 +53,7 @@ class MenuItem {
       spicyLevel: (map['spicyLevel'] is num) ? (map['spicyLevel'] as num).toInt() : 0,
       prepTimeMinutes: (map['prepTimeMinutes'] is num) ? (map['prepTimeMinutes'] as num).toInt() : 12,
       rating: (map['rating'] is num) ? (map['rating'] as num).toDouble() : 4.8,
+      stockQuantity: (map['stockQuantity'] is num) ? (map['stockQuantity'] as num).toInt() : 50,
     );
   }
 
@@ -67,6 +73,7 @@ class MenuItem {
       'spicyLevel': spicyLevel,
       'prepTimeMinutes': prepTimeMinutes,
       'rating': rating,
+      'stockQuantity': stockQuantity,
     };
   }
 
@@ -85,6 +92,7 @@ class MenuItem {
     int? spicyLevel,
     int? prepTimeMinutes,
     double? rating,
+    int? stockQuantity,
   }) {
     return MenuItem(
       id: id ?? this.id,
@@ -101,6 +109,7 @@ class MenuItem {
       spicyLevel: spicyLevel ?? this.spicyLevel,
       prepTimeMinutes: prepTimeMinutes ?? this.prepTimeMinutes,
       rating: rating ?? this.rating,
+      stockQuantity: stockQuantity ?? this.stockQuantity,
     );
   }
 }

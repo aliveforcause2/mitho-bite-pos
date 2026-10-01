@@ -1,32 +1,36 @@
 // lib/models/expense_model.dart
-
 class ExpenseModel {
   final String id;
   final String title;
-  final String category; // 'Rent', 'Staff Salary', 'Electricity & Water', 'LPG Gas Cylinder', 'Maintenance', 'Marketing', 'Miscellaneous'
+  final String category;
   final double amount;
-  final String paymentMethod; // 'Cash', 'Bank Transfer', 'eSewa', 'Khalti'
+  final String paymentMethod;
   final DateTime date;
   final String? note;
 
   ExpenseModel({
     required this.id,
-    required this.title,
+    String? title,
+    String? expenseTitle,
     required this.category,
     required this.amount,
     required this.paymentMethod,
-    required this.date,
+    DateTime? date,
+    dynamic rawDate,
     this.note,
-  });
+  })  : title = title ?? expenseTitle ?? 'General Expense',
+        date = date ?? DateTime.now();
+
+  String get expenseTitle => title;
 
   factory ExpenseModel.fromMap(Map<String, dynamic> map, {String? docId}) {
     return ExpenseModel(
       id: docId ?? map['id'] ?? '',
-      title: map['title'] ?? '',
+      title: map['title'] ?? map['expenseTitle'] ?? '',
       category: map['category'] ?? 'Miscellaneous',
       amount: (map['amount'] is num) ? (map['amount'] as num).toDouble() : 0.0,
       paymentMethod: map['paymentMethod'] ?? 'Cash',
-      date: map['date'] != null ? DateTime.tryParse(map['date']) ?? DateTime.now() : DateTime.now(),
+      date: map['date'] != null ? DateTime.tryParse(map['date'].toString()) ?? DateTime.now() : DateTime.now(),
       note: map['note'],
     );
   }

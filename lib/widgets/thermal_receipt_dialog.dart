@@ -14,18 +14,30 @@ class ThermalReceiptDialog extends StatefulWidget {
   final double splitDigital;
   final String? splitWallet;
 
-  const ThermalReceiptDialog({
+  ThermalReceiptDialog({
     super.key,
     required this.order,
-    required this.profile,
-    required this.grandTotal,
+    RestaurantProfile? profile,
+    double? grandTotal,
     this.discountPercent = 0.0,
-    required this.paymentMethod,
+    String? paymentMethod,
     this.isSplit = false,
     this.splitCash = 0.0,
     this.splitDigital = 0.0,
     this.splitWallet,
-  });
+  })  : profile = profile ?? RestaurantProfile(
+          restaurantName: 'HIMALAYAN RESTAURANT & BAR',
+          ownerName: 'Rajesh Shrestha',
+          phone: '+977-9841000000',
+          email: 'mithobite@gmail.com',
+          panVatNumber: '601928374',
+          address: 'Thamel Marg, Kathmandu, Nepal',
+          serviceChargeRate: 0.0,
+          vatRate: 13.0,
+          isPanEnabled: true,
+        ),
+        grandTotal = grandTotal ?? order.totalAmount,
+        paymentMethod = paymentMethod ?? order.paymentMethod ?? 'Cash';
 
   @override
   State<ThermalReceiptDialog> createState() => _ThermalReceiptDialogState();
