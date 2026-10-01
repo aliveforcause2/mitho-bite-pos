@@ -203,7 +203,7 @@ class _MenuOrderingScreenState extends State<MenuOrderingScreen> {
 
                   // Cart Items
                   Expanded(
-                    child: pos.cart.isEmpty
+                    child: pos.getCartForTable(widget.table.tableNumber).isEmpty
                         ? const Center(child: Text('No items in cart yet', style: TextStyle(color: Colors.white54)))
                         : ListView.separated(
                             padding: const EdgeInsets.all(12),
@@ -249,17 +249,17 @@ class _MenuOrderingScreenState extends State<MenuOrderingScreen> {
                       children: [
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                           const Text('Subtotal:', style: TextStyle(color: Colors.white70)),
-                          Text('Rs. ${pos.cartSubtotal.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          Text('Rs. ${pos.getTableCartSubtotal(widget.table.tableNumber).toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ]),
                         const SizedBox(height: 4),
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                           const Text('13% Nepal VAT:', style: TextStyle(color: Colors.white70)),
-                          Text('Rs. ${pos.cartVatAmount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          Text('Rs. ${(pos.getTableCartSubtotal(widget.table.tableNumber) * 0.13).toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ]),
                         const Divider(color: Colors.white24, height: 16),
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                           const Text('Total:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text('Rs. ${pos.cartGrandTotal.toStringAsFixed(2)}', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text('Rs. ${(pos.getTableCartSubtotal(widget.table.tableNumber) * 1.13).toStringAsFixed(2)}', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
                         ]),
                         const SizedBox(height: 12),
                         SizedBox(
@@ -267,7 +267,7 @@ class _MenuOrderingScreenState extends State<MenuOrderingScreen> {
                           height: 48,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
-                            onPressed: pos.cart.isEmpty
+                            onPressed: pos.getCartForTable(widget.table.tableNumber).isEmpty
                                 ? null
                                 : () => Navigator.push(
                                       context,

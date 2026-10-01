@@ -585,6 +585,22 @@ class PosProvider extends ChangeNotifier {
     'Card': 0.0,
   };
 
+  
+  List<OrderItem> get cart => _tableCarts.values.isNotEmpty ? _tableCarts.values.first : [];
+  double get cartSubtotal => _tableCarts.values.isNotEmpty ? _tableCarts.values.first.fold(0.0, (s, i) => s + i.lineTotal) : 0.0;
+  double get cartVatAmount => cartSubtotal * (_profile.vatRate / 100.0);
+  double get cartGrandTotal => cartSubtotal + cartVatAmount;
+  void updateCartQuantity(String itemId, int delta) {
+    if (_tableCarts.isNotEmpty) {
+      final tNum = _tableCarts.keys.first;
+      final cartList = _tableCarts[tNum]!;
+      final idx = cartList.indexWhere((i) => i.menuItemId == itemId);
+      if (idx >= 0) {
+        updateCartItemQuantity(tNum, itemId, cartList[idx].quantity + delta);
+      }
+    }
+  }
+
   double get netProfitToday => totalSalesToday - (totalPurchasesToday + totalExpensesToday);
 
   double get netRevenueToday => totalSalesToday;
