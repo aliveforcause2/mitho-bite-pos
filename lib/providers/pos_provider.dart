@@ -565,10 +565,11 @@ class PosProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleItemAvailability(String id, bool isAvailable) {
+  void toggleItemAvailability(String id, [bool? isAvailable]) {
     final index = _menuItems.indexWhere((m) => m.id == id);
     if (index >= 0) {
-      _menuItems[index] = _menuItems[index].copyWith(isAvailable: isAvailable);
+      final newStatus = isAvailable ?? !_menuItems[index].isAvailable;
+      _menuItems[index] = _menuItems[index].copyWith(isAvailable: newStatus);
       notifyListeners();
     }
   }
@@ -592,8 +593,18 @@ class PosProvider extends ChangeNotifier {
     }
   }
 
-  void addTable(TableModel table) {
-    _tables.add(table);
+  void addTable(dynamic tableOrNumber, {String? roomSection, int? seatingCapacity, int? tableNumber}) {
+    if (tableOrNumber is TableModel) {
+      _tables.add(tableOrNumber);
+    } else {
+      final numVal = (tableOrNumber is int) ? tableOrNumber : (tableNumber ?? (_tables.length + 1));
+      _tables.add(TableModel(
+        tableNumber: numVal,
+        roomSection: roomSection ?? 'Main Hall',
+        seatingCapacity: seatingCapacity ?? 4,
+        status: TableStatus.available,
+      ));
+    }
     notifyListeners();
   }
 
@@ -618,8 +629,9 @@ class PosProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void bookTable(int tableNumber, {String? customerName, String? customerPhone, String? bookingTime}) {
-    final index = _tables.indexWhere((t) => t.tableNumber == tableNumber);
+  void bookTable(dynamic tableNumber, {String? customerName, String? customerPhone, String? bookingTime}) {
+    final int tNum = (tableNumber is int) ? tableNumber : 1;
+    final index = _tables.indexWhere((t) => t.tableNumber == tNum);
     if (index >= 0) {
       _tables[index] = _tables[index].copyWith(status: TableStatus.reserved, isAvailable: false);
       notifyListeners();

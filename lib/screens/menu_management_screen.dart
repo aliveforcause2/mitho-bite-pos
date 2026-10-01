@@ -195,7 +195,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                 Switch(
                   value: item.isAvailable,
                   activeColor: const Color(0xFF10B981),
-                  onChanged: (_) => pos.toggleItemAvailability(item.id),
+                  onChanged: (_) => pos.toggleItemAvailability(item.id, !item.isAvailable),
                 ),
                 Row(
                   children: [

@@ -18,13 +18,14 @@ class TableModel {
     required this.tableNumber,
     this.roomSection = 'Main Hall',
     required this.seatingCapacity,
-    required this.status,
+    TableStatus? status,
+    bool? isAvailable,
     this.currentOrderId,
     this.occupiedSince,
     this.reservedForName,
     this.reservedForPhone,
     this.reservedTime,
-  });
+  }) : status = status ?? ((isAvailable == false) ? TableStatus.occupied : TableStatus.available);
 
   bool get isAvailable => status == TableStatus.available;
   bool get isOccupied => status == TableStatus.occupied;
@@ -79,6 +80,7 @@ class TableModel {
     String? roomSection,
     int? seatingCapacity,
     TableStatus? status,
+    bool? isAvailable,
     String? currentOrderId,
     String? occupiedSince,
     String? reservedForName,
@@ -90,7 +92,7 @@ class TableModel {
       tableNumber: tableNumber ?? this.tableNumber,
       roomSection: roomSection ?? this.roomSection,
       seatingCapacity: seatingCapacity ?? this.seatingCapacity,
-      status: status ?? this.status,
+      status: status ?? (isAvailable != null ? (isAvailable ? TableStatus.available : TableStatus.occupied) : this.status),
       currentOrderId: currentOrderId ?? this.currentOrderId,
       occupiedSince: occupiedSince ?? this.occupiedSince,
       reservedForName: reservedForName ?? this.reservedForName,

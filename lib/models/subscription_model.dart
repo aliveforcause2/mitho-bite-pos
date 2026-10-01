@@ -1,6 +1,22 @@
 // lib/models/subscription_model.dart
-
 enum SubscriptionTier { basic, pro, enterprise }
+enum PlanType { trial, monthly, yearly, lifetime }
+
+class SubscriptionPlan {
+  final PlanType planType;
+  final String planName;
+  final double price;
+  final int trialDaysRemaining;
+  final String status;
+
+  SubscriptionPlan({
+    required this.planType,
+    required this.planName,
+    required this.price,
+    this.trialDaysRemaining = 14,
+    this.status = 'ACTIVE',
+  });
+}
 
 class RestaurantProfile {
   final String restaurantName;
@@ -30,6 +46,36 @@ class RestaurantProfile {
     this.serviceChargeRate = 10.0,
     this.currency = 'Rs.',
   }) : subscriptionExpiry = subscriptionExpiry ?? DateTime.now().add(const Duration(days: 365));
+
+  RestaurantProfile copyWith({
+    String? restaurantName,
+    String? panVatNumber,
+    String? address,
+    String? phone,
+    String? ownerName,
+    String? email,
+    SubscriptionTier? tier,
+    DateTime? subscriptionExpiry,
+    bool? isPanEnabled,
+    double? vatRate,
+    double? serviceChargeRate,
+    String? currency,
+  }) {
+    return RestaurantProfile(
+      restaurantName: restaurantName ?? this.restaurantName,
+      panVatNumber: panVatNumber ?? this.panVatNumber,
+      address: address ?? this.address,
+      phone: phone ?? this.phone,
+      ownerName: ownerName ?? this.ownerName,
+      email: email ?? this.email,
+      tier: tier ?? this.tier,
+      subscriptionExpiry: subscriptionExpiry ?? this.subscriptionExpiry,
+      isPanEnabled: isPanEnabled ?? this.isPanEnabled,
+      vatRate: vatRate ?? this.vatRate,
+      serviceChargeRate: serviceChargeRate ?? this.serviceChargeRate,
+      currency: currency ?? this.currency,
+    );
+  }
 
   factory RestaurantProfile.fromMap(Map<String, dynamic> map) {
     SubscriptionTier tier = SubscriptionTier.enterprise;
