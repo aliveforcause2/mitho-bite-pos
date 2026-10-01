@@ -53,7 +53,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                 const SizedBox(width: 12),
                 _buildKpiCard('Discounts', '- Rs. ${pos.totalDiscountsToday.toStringAsFixed(2)}', Colors.redAccent, 'Promotional'),
                 const SizedBox(width: 12),
-                _buildKpiCard('Net Total Settled', 'Rs. ${pos.netRevenueToday.toStringAsFixed(2)}', Colors.emerald, 'Cash + Digital'),
+                _buildKpiCard('Net Total Settled', 'Rs. ${pos.netRevenueToday.toStringAsFixed(2)}', Colors.teal, 'Cash + Digital'),
               ],
             ),
             const SizedBox(height: 20),

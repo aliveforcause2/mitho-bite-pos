@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/pos_provider.dart';
 import '../models/table_model.dart';
+import '../models/order_model.dart';
 import 'menu_ordering_screen.dart';
 import 'kitchen_display_screen.dart';
 import 'sales_report_screen.dart';
