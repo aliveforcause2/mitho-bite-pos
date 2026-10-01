@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "880675448145",
+    "project_id": "mitho-bite-pos",
+    "storage_bucket": "mitho-bite-pos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:880675448145:android:25a2a68c191d437ab75f70",
+        "android_client_info": {
+          "package_name": "com.mithobite.pos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGeMxPIuC8dhzUjxXq4G64FzUdjiq_g4I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
