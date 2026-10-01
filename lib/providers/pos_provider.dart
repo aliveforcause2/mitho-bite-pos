@@ -15,6 +15,14 @@ class PosProvider extends ChangeNotifier {
   RestaurantProfile _profile = RestaurantProfile();
   RestaurantProfile get profile => _profile;
 
+  TableModel? _selectedTable;
+  TableModel? get selectedTable => _selectedTable;
+
+  void selectTable(TableModel table) {
+    _selectedTable = table;
+    notifyListeners();
+  }
+
   // Available Rooms/Sections
   final List<String> _rooms = [
     'Main Hall',
@@ -173,7 +181,7 @@ class PosProvider extends ChangeNotifier {
   ];
   List<SupplierModel> get suppliers => _suppliers;
 
-  // Purchase Entries (सामान खरिद रेकर्ड)
+  // Purchase Entries
   List<PurchaseEntry> _purchases = [
     PurchaseEntry(
       id: 'pur-1',
@@ -202,7 +210,7 @@ class PosProvider extends ChangeNotifier {
   ];
   List<PurchaseEntry> get purchases => _purchases;
 
-  // Daily Expenses (खर्चहरू)
+  // Daily Expenses
   List<ExpenseModel> _expenses = [
     ExpenseModel(
       id: 'exp-1',
@@ -397,17 +405,17 @@ class PosProvider extends ChangeNotifier {
       _tableCarts[tableNumber] = [];
     }
 
-    final cart = _tableCarts[tableNumber]!;
-    final existingIndex = cart.indexWhere((item) => item.menuItemId == menuItem.id);
+    final cartList = _tableCarts[tableNumber]!;
+    final existingIndex = cartList.indexWhere((item) => item.menuItemId == menuItem.id);
 
     if (existingIndex >= 0) {
-      final existing = cart[existingIndex];
-      cart[existingIndex] = existing.copyWith(
+      final existing = cartList[existingIndex];
+      cartList[existingIndex] = existing.copyWith(
         quantity: existing.quantity + qty,
         specialInstructions: specialInstructions ?? existing.specialInstructions,
       );
     } else {
-      cart.add(
+      cartList.add(
         OrderItem(
           menuItemId: menuItem.id,
           name: menuItem.name,
@@ -418,7 +426,6 @@ class PosProvider extends ChangeNotifier {
       );
     }
 
-    // Set table status to occupied if available
     final tableIndex = _tables.indexWhere((t) => t.tableNumber == tableNumber);
     if (tableIndex >= 0 && _tables[tableIndex].isAvailable) {
       _tables[tableIndex] = _tables[tableIndex].copyWith(
@@ -430,6 +437,14 @@ class PosProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addToCart(MenuItem item) {
+    if (_selectedTable != null) {
+      addItemToTableCart(_selectedTable!.tableNumber, item);
+    } else if (_tables.isNotEmpty) {
+      addItemToTableCart(_tables.first.tableNumber, item);
+    }
+  }
+
   void removeItemFromTableCart(int tableNumber, String menuItemId) {
     if (!_tableCarts.containsKey(tableNumber)) return;
     _tableCarts[tableNumber]!.removeWhere((item) => item.menuItemId == menuItemId);
@@ -438,16 +453,27 @@ class PosProvider extends ChangeNotifier {
 
   void updateCartItemQuantity(int tableNumber, String menuItemId, int newQuantity) {
     if (!_tableCarts.containsKey(tableNumber)) return;
-    final cart = _tableCarts[tableNumber]!;
-    final index = cart.indexWhere((item) => item.menuItemId == menuItemId);
+    final cartList = _tableCarts[tableNumber]!;
+    final index = cartList.indexWhere((item) => item.menuItemId == menuItemId);
 
     if (index >= 0) {
       if (newQuantity <= 0) {
-        cart.removeAt(index);
+        cartList.removeAt(index);
       } else {
-        cart[index] = cart[index].copyWith(quantity: newQuantity);
+        cartList[index] = cartList[index].copyWith(quantity: newQuantity);
       }
       notifyListeners();
+    }
+  }
+
+  void updateCartQuantity(String itemId, int delta) {
+    final tNum = _selectedTable?.tableNumber ?? (_tableCarts.isNotEmpty ? _tableCarts.keys.first : 1);
+    if (_tableCarts.containsKey(tNum)) {
+      final cartList = _tableCarts[tNum]!;
+      final idx = cartList.indexWhere((i) => i.menuItemId == itemId);
+      if (idx >= 0) {
+        updateCartItemQuantity(tNum, itemId, cartList[idx].quantity + delta);
+      }
     }
   }
 
@@ -455,6 +481,23 @@ class PosProvider extends ChangeNotifier {
     _tableCarts.remove(tableNumber);
     notifyListeners();
   }
+
+  List<OrderItem> get cart {
+    if (_selectedTable != null && _tableCarts.containsKey(_selectedTable!.tableNumber)) {
+      return _tableCarts[_selectedTable!.tableNumber]!;
+    }
+    return _tableCarts.values.isNotEmpty ? _tableCarts.values.first : [];
+  }
+
+  int get cartCount => cart.fold(0, (sum, item) => sum + item.quantity);
+
+  double get cartSubtotal {
+    final activeCart = cart;
+    return activeCart.fold(0.0, (s, i) => s + i.lineTotal);
+  }
+
+  double get cartVatAmount => cartSubtotal * (_profile.vatRate / 100.0);
+  double get cartGrandTotal => cartSubtotal + cartVatAmount;
 
   // --- KOT & ORDER SUBMISSION ---
   Future<bool> sendKOTToKitchen(int tableNumber, {String? kitchenNote, String? serverName}) async {
@@ -584,22 +627,6 @@ class PosProvider extends ChangeNotifier {
     'Khalti': digitalSales * 0.20,
     'Card': 0.0,
   };
-
-  
-  List<OrderItem> get cart => _tableCarts.values.isNotEmpty ? _tableCarts.values.first : [];
-  double get cartSubtotal => _tableCarts.values.isNotEmpty ? _tableCarts.values.first.fold(0.0, (s, i) => s + i.lineTotal) : 0.0;
-  double get cartVatAmount => cartSubtotal * (_profile.vatRate / 100.0);
-  double get cartGrandTotal => cartSubtotal + cartVatAmount;
-  void updateCartQuantity(String itemId, int delta) {
-    if (_tableCarts.isNotEmpty) {
-      final tNum = _tableCarts.keys.first;
-      final cartList = _tableCarts[tNum]!;
-      final idx = cartList.indexWhere((i) => i.menuItemId == itemId);
-      if (idx >= 0) {
-        updateCartItemQuantity(tNum, itemId, cartList[idx].quantity + delta);
-      }
-    }
-  }
 
   double get netProfitToday => totalSalesToday - (totalPurchasesToday + totalExpensesToday);
 

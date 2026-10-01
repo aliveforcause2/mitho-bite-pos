@@ -7,7 +7,6 @@ import '../models/order_model.dart';
 import '../models/daily_sales_report.dart';
 
 class PosFirestoreService {
-  // Lazy access to Firestore instance
   FirebaseFirestore? _instance;
   FirebaseFirestore? get _firestore {
     try {
@@ -25,7 +24,7 @@ class PosFirestoreService {
   CollectionReference? get _ordersRef => _firestore?.collection('orders');
   CollectionReference? get _salesReportsRef => _firestore?.collection('daily_sales_reports');
 
-  // 1. Stream of Menu Items (real-time stock & availability)
+  // Stream Methods
   Stream<List<MenuItem>> streamMenuItems() {
     final ref = _menuItemsRef;
     if (ref == null) return const Stream.empty();
@@ -33,12 +32,11 @@ class PosFirestoreService {
       return snapshot.docs.map((doc) {
         return MenuItem.fromMap(doc.data() as Map<String, dynamic>, docId: doc.id);
       }).toList();
-    }).handleError((e) {
-      debugPrint('Error streaming menu items: $e');
-    });
+    }).handleError((e) => debugPrint('Error streaming menu items: $e'));
   }
 
-  // 2. Stream of Tables
+  Stream<List<MenuItem>> getMenuItemsStream() => streamMenuItems();
+
   Stream<List<TableModel>> streamTables() {
     final ref = _tablesRef;
     if (ref == null) return const Stream.empty();
@@ -46,12 +44,11 @@ class PosFirestoreService {
       return snapshot.docs.map((doc) {
         return TableModel.fromMap(doc.data() as Map<String, dynamic>, docId: doc.id);
       }).toList();
-    }).handleError((e) {
-      debugPrint('Error streaming tables: $e');
-    });
+    }).handleError((e) => debugPrint('Error streaming tables: $e'));
   }
 
-  // 3. Stream of Orders
+  Stream<List<TableModel>> getTablesStream() => streamTables();
+
   Stream<List<OrderModel>> streamOrders() {
     final ref = _ordersRef;
     if (ref == null) return const Stream.empty();
@@ -59,12 +56,12 @@ class PosFirestoreService {
       return snapshot.docs.map((doc) {
         return OrderModel.fromMap(doc.data() as Map<String, dynamic>, docId: doc.id);
       }).toList();
-    }).handleError((e) {
-      debugPrint('Error streaming orders: $e');
-    });
+    }).handleError((e) => debugPrint('Error streaming orders: $e'));
   }
 
-  // 4. Atomic Multi-Document Transaction: Place Order, Occupy Table & Deduct Stock
+  Stream<List<OrderModel>> getOrdersStream() => streamOrders();
+
+  // Place Order & Save
   Future<void> placeOrderAndUpdateTable(OrderModel order) async {
     final firestore = _firestore;
     final ordersRef = _ordersRef;
@@ -73,13 +70,10 @@ class PosFirestoreService {
     if (firestore == null || ordersRef == null || tablesRef == null || menuItemsRef == null) {
       return;
     }
-
     final batch = firestore.batch();
-    // A. Create Order Document
     final orderDocRef = ordersRef.doc(order.orderId);
     batch.set(orderDocRef, order.toMap());
 
-    // B. Update Table Status to 'occupied'
     final tableDocRef = tablesRef.doc('table_${order.tableNumber}');
     batch.update(tableDocRef, {
       'status': 'occupied',
@@ -87,25 +81,52 @@ class PosFirestoreService {
       'occupiedSince': DateTime.now().toIso8601String(),
     });
 
-    // C. Deduct Stock Quantities in Real-Time
     for (final item in order.itemsList) {
       final itemDocRef = menuItemsRef.doc(item.menuItemId);
       batch.update(itemDocRef, {
         'stockQuantity': FieldValue.increment(-item.quantity),
       });
     }
-
     await batch.commit();
   }
 
-  // 5. Update Order Status (KDS: pending -> preparing -> served)
+  Future<void> saveNewOrder(OrderModel order) => placeOrderAndUpdateTable(order);
+
+  // Table Status Update
+  Future<void> updateTableStatus(int tableNumber, TableStatus status, {String? orderId}) async {
+    final tablesRef = _tablesRef;
+    if (tablesRef == null) return;
+    try {
+      await tablesRef.doc('table_$tableNumber').set({
+        'tableNumber': tableNumber,
+        'status': status.name,
+        if (orderId != null) 'currentOrderId': orderId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Error updating table status: $e');
+    }
+  }
+
+  // Order Status Update
   Future<void> updateOrderStatus(String orderId, OrderStatus status) async {
     final ordersRef = _ordersRef;
     if (ordersRef == null) return;
     await ordersRef.doc(orderId).update({'status': status.name});
   }
 
-  // 6. Complete Payment & Free Table
+  // Bill Settlement
+  Future<void> settleBill(String orderId, String paymentMethod, double finalTotal) async {
+    final ordersRef = _ordersRef;
+    if (ordersRef == null) return;
+    await ordersRef.doc(orderId).update({
+      'status': 'paid',
+      'paymentMethod': paymentMethod,
+      'totalAmount': finalTotal,
+      'settledAt': DateTime.now().toIso8601String(),
+    });
+  }
+
   Future<void> completePaymentAndFreeTable({
     required String orderId,
     required int tableNumber,
@@ -118,9 +139,8 @@ class PosFirestoreService {
     final ordersRef = _ordersRef;
     final tablesRef = _tablesRef;
     if (firestore == null || ordersRef == null || tablesRef == null) return;
-
     final batch = firestore.batch();
-    // A. Mark Order as Paid
+
     final orderDocRef = ordersRef.doc(orderId);
     batch.update(orderDocRef, {
       'status': 'paid',
@@ -131,18 +151,15 @@ class PosFirestoreService {
       'settledAt': DateTime.now().toIso8601String(),
     });
 
-    // B. Set Table Status to 'available'
     final tableDocRef = tablesRef.doc('table_$tableNumber');
     batch.update(tableDocRef, {
       'status': 'available',
       'currentOrderId': null,
       'occupiedSince': null,
     });
-
     await batch.commit();
   }
 
-  // 7. Quick Restock Inventory
   Future<void> restockMenuItem(String itemId, int addedQty) async {
     final menuItemsRef = _menuItemsRef;
     if (menuItemsRef == null) return;
@@ -152,7 +169,6 @@ class PosFirestoreService {
     });
   }
 
-  // 8. Shift Settlement / Day Close (Z-Report)
   Future<void> closeDailyShift(DailySalesReport report) async {
     final salesReportsRef = _salesReportsRef;
     if (salesReportsRef == null) return;
