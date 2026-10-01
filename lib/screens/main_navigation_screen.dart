@@ -273,7 +273,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         indicatorColor: const Color(0xFFF59E0B),
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
-        labelBehavior: NavigationBarDestinationLabelBehavior.alwaysShow,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.table_restaurant_outlined, color: Colors.white70),

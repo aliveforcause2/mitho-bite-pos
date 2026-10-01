@@ -7,13 +7,14 @@ class NepaliPaymentDialog extends StatefulWidget {
   final int tableNumber;
   final Function(String paymentMethod, String txnRef) onPaymentSuccess;
 
-  const NepaliPaymentDialog({
+  NepaliPaymentDialog({
     super.key,
-    required this.amount,
+    double? amount,
+    double? totalAmount,
     required this.orderId,
     required this.tableNumber,
     required this.onPaymentSuccess,
-  });
+  }) : amount = amount ?? totalAmount ?? 0.0;
 
   @override
   State<NepaliPaymentDialog> createState() => _NepaliPaymentDialogState();
@@ -28,149 +29,189 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
     'Khalti': const Color(0xFF5C2D91),
     'Fonepay': const Color(0xFFE21B22),
     'Cash': const Color(0xFF10B981),
+    'Card': const Color(0xFF3B82F6),
   };
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = _walletColors[_selectedWallet] ?? const Color(0xFFF59E0B);
-
     return Dialog(
       backgroundColor: const Color(0xFF1E293B),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Pay Rs. ${widget.amount.toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white54),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Wallet Switcher
-            Row(
-              children: ['eSewa', 'Khalti', 'Fonepay', 'Cash'].map((wallet) {
-                final isSel = _selectedWallet == wallet;
-                final col = _walletColors[wallet]!;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedWallet = wallet),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSel ? col.withOpacity(0.25) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: isSel ? col : Colors.white12, width: 1.5),
-                      ),
-                      child: Text(
-                        wallet,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: isSel ? col : Colors.white60,
-                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Nepali QR & Payment',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            // QR Display or Cash Icon
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: activeColor.withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white60, size: 20),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
-              child: _selectedWallet == 'Cash'
-                  ? Column(
-                      children: [
-                        const Icon(Icons.payments_rounded, size: 80, color: Color(0xFF10B981)),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Collect Rs. ${widget.amount.toStringAsFixed(2)} Cash',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        Container(
-                          width: 140,
-                          height: 140,
+              const SizedBox(height: 8),
+
+              // Total Amount Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF334155)),
+                ),
+                child: Column(
+                  children: [
+                    const Text('Total Bill to Settle', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Rs. ${widget.amount.toStringAsFixed(2)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Color(0xFFF59E0B)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Payment Method Tabs
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: ['eSewa', 'Khalti', 'Fonepay', 'Cash', 'Card'].map((method) {
+                    final isSelected = _selectedWallet == method;
+                    final color = _walletColors[method] ?? const Color(0xFFF59E0B);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: InkWell(
+                        onTap: () => setState(() => _selectedWallet = method),
+                        borderRadius: BorderRadius.circular(10),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: activeColor, width: 3),
-                            borderRadius: BorderRadius.circular(8),
+                            color: isSelected ? color : const Color(0xFF0F172A),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isSelected ? color : const Color(0xFF334155),
+                              width: 1.5,
+                            ),
                           ),
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.qr_code_2_rounded, size: 90, color: activeColor),
-                                Text(
-                                  _selectedWallet.toUpperCase(),
-                                  style: TextStyle(color: activeColor, fontWeight: FontWeight.bold, fontSize: 12),
-                                ),
-                              ],
+                          child: Text(
+                            method,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.white70,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Scan with $_selectedWallet App',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 13),
-                        ),
-                        Text(
-                          'Merchant: miTHOBITE POS',
-                          style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
-                        ),
-                      ],
-                    ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: activeColor),
-                icon: _isProcessing
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.check_circle_rounded, color: Colors.white),
-                label: Text(
-                  _isProcessing ? 'Verifying...' : 'Confirm & Print Receipt',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                      ),
+                    );
+                  }).toList(),
                 ),
-                onPressed: _isProcessing
-                    ? null
-                    : () async {
-                        setState(() => _isProcessing = true);
-                        await Future.delayed(const Duration(milliseconds: 600));
-                        final txnRef = '${_selectedWallet.toUpperCase()}-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
-                        widget.onPaymentSuccess(_selectedWallet, txnRef);
-                        if (mounted) Navigator.pop(context);
-                      },
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+
+              // QR Code Display / Cash Input
+              if (_selectedWallet == 'Cash')
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: const [
+                      Icon(Icons.payments_rounded, color: Color(0xFF10B981), size: 48),
+                      SizedBox(height: 8),
+                      Text('Accept Physical Cash at Counter', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Hand change and click confirm payment', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                    ],
+                  ),
+                )
+              else if (_selectedWallet == 'Card')
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: const [
+                      Icon(Icons.credit_card_rounded, color: Color(0xFF3B82F6), size: 48),
+                      SizedBox(height: 8),
+                      Text('POS Swipe Machine / NFC Tap', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Accept Visa / Mastercard / SCT', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                    ],
+                  ),
+                )
+              else
+                // Dynamic QR Simulation
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _walletColors[_selectedWallet],
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Scan to Pay with $_selectedWallet',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Icon(Icons.qr_code_2_rounded, size: 140, color: _walletColors[_selectedWallet] ?? Colors.black),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Merchant: Himalayan Restaurant',
+                        style: TextStyle(color: Colors.grey.shade800, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 20),
+
+              // Confirm Button
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _walletColors[_selectedWallet] ?? const Color(0xFF10B981),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: _isProcessing
+                      ? null
+                      : () {
+                          setState(() => _isProcessing = true);
+                          final txnRef = '${_selectedWallet.toUpperCase()}-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+                          widget.onPaymentSuccess(_selectedWallet, txnRef);
+                        },
+                  child: _isProcessing
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : Text(
+                          'CONFIRM RS. ${widget.amount.toStringAsFixed(0)} VIA $_selectedWallet',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
