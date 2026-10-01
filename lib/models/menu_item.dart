@@ -1,14 +1,15 @@
 // lib/models/menu_item.dart
-
 class MenuItem {
   final String id;
   final String name;
   final String category;
   final double price;
+  final double costPrice;
   final bool isAvailable;
   final int stockQuantity;
   final int lowStockThreshold;
   final String? description;
+  final String? imageUrl;
   final bool isVeg;
   final int spicyLevel;
 
@@ -17,16 +18,18 @@ class MenuItem {
     required this.name,
     required this.category,
     required this.price,
+    this.costPrice = 0.0,
     this.isAvailable = true,
     this.stockQuantity = 25,
     this.lowStockThreshold = 5,
     this.description,
+    this.imageUrl,
     this.isVeg = false,
     this.spicyLevel = 1,
   });
 
   bool get isLowStock => stockQuantity <= lowStockThreshold && stockQuantity > 0;
-  bool get isOutOfStock => stockQuantity <= 0;
+  bool get isOutOfStock => stockQuantity <= 0 || !isAvailable;
 
   factory MenuItem.fromMap(Map<String, dynamic> map, {String? docId}) {
     return MenuItem(
@@ -34,10 +37,12 @@ class MenuItem {
       name: map['name'] ?? 'Unnamed Dish',
       category: map['category'] ?? 'General',
       price: (map['price'] is num) ? (map['price'] as num).toDouble() : 0.0,
+      costPrice: (map['costPrice'] is num) ? (map['costPrice'] as num).toDouble() : 0.0,
       isAvailable: map['isAvailable'] ?? true,
       stockQuantity: map['stockQuantity'] is int ? map['stockQuantity'] as int : 25,
       lowStockThreshold: map['lowStockThreshold'] is int ? map['lowStockThreshold'] as int : 5,
       description: map['description'],
+      imageUrl: map['imageUrl'],
       isVeg: map['isVeg'] ?? false,
       spicyLevel: map['spicyLevel'] is int ? map['spicyLevel'] as int : 1,
     );
@@ -49,10 +54,12 @@ class MenuItem {
       'name': name,
       'category': category,
       'price': price,
+      'costPrice': costPrice,
       'isAvailable': isAvailable,
       'stockQuantity': stockQuantity,
       'lowStockThreshold': lowStockThreshold,
       'description': description,
+      'imageUrl': imageUrl,
       'isVeg': isVeg,
       'spicyLevel': spicyLevel,
     };
@@ -63,10 +70,12 @@ class MenuItem {
     String? name,
     String? category,
     double? price,
+    double? costPrice,
     bool? isAvailable,
     int? stockQuantity,
     int? lowStockThreshold,
     String? description,
+    String? imageUrl,
     bool? isVeg,
     int? spicyLevel,
   }) {
@@ -75,10 +84,12 @@ class MenuItem {
       name: name ?? this.name,
       category: category ?? this.category,
       price: price ?? this.price,
+      costPrice: costPrice ?? this.costPrice,
       isAvailable: isAvailable ?? this.isAvailable,
       stockQuantity: stockQuantity ?? this.stockQuantity,
       lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
       description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
       isVeg: isVeg ?? this.isVeg,
       spicyLevel: spicyLevel ?? this.spicyLevel,
     );
