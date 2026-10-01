@@ -1,0 +1,6 @@
+{
+  "name": "MITHO BITE - Smart Restaurant POS & KDS",
+  "description": "Professional Nepali Restaurant POS and KDS with owner menu/table management, custom PIN, and multi-wallet Nepali QR billing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

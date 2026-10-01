@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MITHO BITE - Smart Restaurant POS & KDS</title>
+    <meta name="description" content="Professional Nepali Restaurant POS and KDS with owner menu/table management, custom PIN, and multi-wallet Nepali QR billing." />
+    <meta property="og:title" content="MITHO BITE - Smart Restaurant POS & KDS" />
+    <meta property="og:description" content="Professional Nepali Restaurant POS and KDS with owner menu/table management, custom PIN, and multi-wallet Nepali QR billing." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+      @media print {
+        body * {
+          visibility: hidden !important;
+        }
+        .printable-receipt, .printable-receipt * {
+          visibility: visible !important;
+        }
+        .printable-receipt {
+          position: fixed !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 100% !important;
+          max-width: 80mm !important;
+          background: white !important;
+          color: black !important;
+          padding: 8px !important;
+          margin: 0 !important;
+          box-shadow: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

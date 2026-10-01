@@ -1,0 +1,102 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Auto-Configure & Repair Android Project
+        run: |
+          # 1. यदि Dart कोडहरू src/flutter_source मा भए lib मा सार्ने
+          if [ -d "src/flutter_source/lib" ]; then
+            mkdir -p lib
+            cp -r src/flutter_source/lib/* lib/ || true
+          fi
+
+          # 2. google-services.json सुरक्षित राख्ने
+          if [ -f "android/app/google-services.json" ]; then
+            mkdir -p /tmp/fb
+            cp "android/app/google-services.json" /tmp/fb/google-services.json
+          fi
+
+          # 3. v1 embedding त्रुटि रोक्न अपूर्ण फोल्डर हटाउने
+          rm -rf android
+
+          # 4. आधिकारिक आधुनिक Flutter v2 Android Project बनाउने (package com.mithobite.pos)
+          flutter create --platforms=android --org com.mithobite --project-name pos .
+
+          # 5. google-services.json फिर्ता ल्याउने
+          if [ -f "/tmp/fb/google-services.json" ]; then
+            mkdir -p android/app
+            cp /tmp/fb/google-services.json android/app/google-services.json
+          fi
+
+          # 6. Ensure applicationId matches google-services.json ("com.mithobite.pos")
+          if [ -f "android/app/build.gradle" ]; then
+            sed -i 's/applicationId "[^"]*"/applicationId "com.mithobite.pos"/g' android/app/build.gradle || true
+            if ! grep -q "applicationId" android/app/build.gradle; then
+              sed -i '/defaultConfig {/a \        applicationId "com.mithobite.pos"' android/app/build.gradle || true
+            fi
+            sed -i 's/minifyEnabled true/minifyEnabled false/g' android/app/build.gradle || true
+            sed -i 's/shrinkResources true/shrinkResources false/g' android/app/build.gradle || true
+          fi
+
+          # 7. Set App Name to miTHOBITE
+          sed -i 's/android:label="[^"]*"/android:label="miTHOBITE"/g' android/app/src/main/AndroidManifest.xml || true
+          if [ -f "android/app/src/main/res/values/strings.xml" ]; then
+            sed -i 's/<string name="app_name">[^<]*<\/string>/<string name="app_name">miTHOBITE<\/string>/g' android/app/src/main/res/values/strings.xml || true
+          else
+            mkdir -p android/app/src/main/res/values
+            echo '<resources><string name="app_name">miTHOBITE</string></resources>' > android/app/src/main/res/values/strings.xml
+          fi
+
+          # 8. Add Internet and Camera permissions
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET"\/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"\/>\n    <uses-permission android:name="android.permission.CAMERA"\/>' android/app/src/main/AndroidManifest.xml || true
+
+          # 9. Add Google Services classpath & plugin
+          if [ -f "android/build.gradle" ]; then
+            if ! grep -q "com.google.gms:google-services" android/build.gradle; then
+              sed -i '/dependencies {/a \        classpath "com.google.gms:google-services:4.4.2"' android/build.gradle || true
+            fi
+          fi
+
+          if [ -f "android/app/build.gradle" ]; then
+            if ! grep -q "com.google.gms.google-services" android/app/build.gradle; then
+              echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+            fi
+            sed -i 's/minSdkVersion .*/minSdkVersion 21/' android/app/build.gradle || true
+            sed -i 's/minSdk = .*/minSdk = 21/' android/app/build.gradle || true
+            sed -i 's/multiDexEnabled .*/multiDexEnabled true/' android/app/build.gradle || true
+          fi
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build Release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: miTHOBITE-POS-APK
+          path: build/app/outputs/flutter-apk/app-release.apk

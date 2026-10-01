@@ -1,0 +1,32 @@
+name: mithobite
+description: "A production-grade Restaurant POS and Management App built with Flutter & Firebase."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management (simplest & most robust for beginners)
+  provider: ^6.1.2
+
+  # Firebase Backend Integration
+  firebase_core: ^3.6.0
+  cloud_firestore: ^5.4.4
+
+  # UI & Utility helpers
+  intl: ^0.19.0
+  uuid: ^4.5.1
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
