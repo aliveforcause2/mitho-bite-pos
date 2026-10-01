@@ -259,7 +259,7 @@ class _RoomTableManagementScreenState extends State<RoomTableManagementScreen> {
               child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
             ),
             ElevatedButton(
-              style: ElevatedButton.backgroundColor(const Color(0xFF10B981)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
               onPressed: () {
                 pos.addTable(
                   tableNumber: tableNum,
@@ -298,7 +298,7 @@ class _RoomTableManagementScreenState extends State<RoomTableManagementScreen> {
             child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
-            style: ElevatedButton.backgroundColor(const Color(0xFFF59E0B)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
             onPressed: () {
               if (roomName.trim().isNotEmpty) {
                 pos.addRoom(roomName.trim());
@@ -360,7 +360,7 @@ class _RoomTableManagementScreenState extends State<RoomTableManagementScreen> {
             child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
-            style: ElevatedButton.backgroundColor(const Color(0xFF3B82F6)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B82F6)),
             onPressed: () {
               if (name.isNotEmpty) {
                 pos.bookTable(
@@ -395,7 +395,7 @@ class _RoomTableManagementScreenState extends State<RoomTableManagementScreen> {
             child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
-            style: ElevatedButton.backgroundColor(const Color(0xFFEF4444)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
             onPressed: () {
               pos.deleteTable(tableNumber);
               Navigator.pop(ctx);

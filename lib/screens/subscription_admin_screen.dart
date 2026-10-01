@@ -208,7 +208,7 @@ class SubscriptionAdminScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
           ElevatedButton(
-            style: ElevatedButton.backgroundColor(const Color(0xFFF59E0B)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
             onPressed: () {
               pos.updateProfile(
                 RestaurantProfile(

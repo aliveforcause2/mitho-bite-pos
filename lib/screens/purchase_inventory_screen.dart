@@ -308,7 +308,7 @@ class _PurchaseInventoryScreenState extends State<PurchaseInventoryScreen> with 
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
             ElevatedButton(
-              style: ElevatedButton.backgroundColor(const Color(0xFFF59E0B)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
               onPressed: () {
                 if (itemName.trim().isNotEmpty) {
                   pos.addPurchase(
@@ -381,7 +381,7 @@ class _PurchaseInventoryScreenState extends State<PurchaseInventoryScreen> with 
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
           ElevatedButton(
-            style: ElevatedButton.backgroundColor(const Color(0xFF10B981)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
             onPressed: () {
               if (name.trim().isNotEmpty) {
                 pos.addSupplier(

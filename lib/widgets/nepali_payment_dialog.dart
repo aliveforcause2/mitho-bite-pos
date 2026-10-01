@@ -151,7 +151,7 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
               width: double.infinity,
               height: 48,
               child: ElevatedButton.icon(
-                style: ElevatedButton.backgroundColor(activeColor),
+                style: ElevatedButton.styleFrom(backgroundColor: activeColor),
                 icon: _isProcessing
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.check_circle_rounded, color: Colors.white),

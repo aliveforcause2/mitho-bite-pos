@@ -322,7 +322,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
               child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
             ),
             ElevatedButton(
-              style: ElevatedButton.backgroundColor(const Color(0xFFF59E0B)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
               onPressed: () {
                 if (name.trim().isNotEmpty) {
                   final newItem = MenuItem(
@@ -362,7 +362,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
           ElevatedButton(
-            style: ElevatedButton.backgroundColor(const Color(0xFFEF4444)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
             onPressed: () {
               pos.deleteMenuItem(item.id);
               Navigator.pop(ctx);

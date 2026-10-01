@@ -234,7 +234,7 @@ class _AccountingReportsScreenState extends State<AccountingReportsScreen> with 
             children: [
               const Text('All Operational Expenses', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
               ElevatedButton.icon(
-                style: ElevatedButton.backgroundColor(const Color(0xFFEF4444)),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
                 icon: const Icon(Icons.add, size: 18, color: Colors.white),
                 label: const Text('Add Expense', style: TextStyle(color: Colors.white)),
                 onPressed: () => _showAddExpenseDialog(context, pos),
@@ -367,7 +367,7 @@ class _AccountingReportsScreenState extends State<AccountingReportsScreen> with 
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
             ElevatedButton(
-              style: ElevatedButton.backgroundColor(const Color(0xFFEF4444)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
               onPressed: () {
                 if (title.trim().isNotEmpty) {
                   pos.addExpense(
