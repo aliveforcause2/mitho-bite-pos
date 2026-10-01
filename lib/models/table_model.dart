@@ -1,8 +1,8 @@
 // lib/models/table_model.dart
-
 enum TableStatus { available, occupied, reserved }
 
 class TableModel {
+  final String? id;
   final int tableNumber;
   final int seatingCapacity;
   final TableStatus status;
@@ -10,6 +10,7 @@ class TableModel {
   final String? occupiedSince;
 
   TableModel({
+    this.id,
     required this.tableNumber,
     required this.seatingCapacity,
     required this.status,
@@ -35,6 +36,7 @@ class TableModel {
     }
 
     return TableModel(
+      id: docId ?? map['id'],
       tableNumber: parsedNumber,
       seatingCapacity: map['seatingCapacity'] ?? 4,
       status: parsedStatus,
@@ -45,6 +47,7 @@ class TableModel {
 
   Map<String, dynamic> toMap() {
     return {
+      if (id != null) 'id': id,
       'tableNumber': tableNumber,
       'seatingCapacity': seatingCapacity,
       'status': status.name,
@@ -54,6 +57,7 @@ class TableModel {
   }
 
   TableModel copyWith({
+    String? id,
     int? tableNumber,
     int? seatingCapacity,
     TableStatus? status,
@@ -61,6 +65,7 @@ class TableModel {
     String? occupiedSince,
   }) {
     return TableModel(
+      id: id ?? this.id,
       tableNumber: tableNumber ?? this.tableNumber,
       seatingCapacity: seatingCapacity ?? this.seatingCapacity,
       status: status ?? this.status,

@@ -1,5 +1,4 @@
 // lib/models/order_model.dart
-
 enum OrderStatus { pending, preparing, served, paid, cancelled }
 
 class OrderItem {
@@ -160,5 +159,41 @@ class OrderModel {
       'transactionRef': transactionRef,
       'settledAt': settledAt,
     };
+  }
+
+  OrderModel copyWith({
+    String? orderId,
+    int? tableNumber,
+    List<OrderItem>? itemsList,
+    double? subtotal,
+    double? taxAmount,
+    double? totalAmount,
+    double? discountPercent,
+    double? discountAmount,
+    OrderStatus? status,
+    DateTime? timestamp,
+    String? kitchenNote,
+    String? serverName,
+    String? paymentMethod,
+    String? transactionRef,
+    String? settledAt,
+  }) {
+    return OrderModel(
+      orderId: orderId ?? this.orderId,
+      tableNumber: tableNumber ?? this.tableNumber,
+      itemsList: itemsList ?? this.itemsList,
+      subtotal: subtotal ?? this.subtotal,
+      taxAmount: taxAmount ?? this.taxAmount,
+      totalAmount: totalAmount ?? this.totalAmount,
+      discountPercent: discountPercent ?? this.discountPercent,
+      discountAmount: discountAmount ?? this.discountAmount,
+      status: status ?? this.status,
+      timestamp: timestamp ?? this.timestamp,
+      kitchenNote: kitchenNote ?? this.kitchenNote,
+      serverName: serverName ?? this.serverName,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      transactionRef: transactionRef ?? this.transactionRef,
+      settledAt: settledAt ?? this.settledAt,
+    );
   }
 }

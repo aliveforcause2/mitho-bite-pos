@@ -18,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
 
@@ -26,14 +26,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.6, curve: Curves.easeIn)),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.2, 1.0, curve: Curves.easeOutBack)),
     );
 
     _controller.forward();
 
-    // Navigate to TableSelectionScreen after 2.2 seconds
-    Future.delayed(const Duration(milliseconds: 2200), () {
+    // Navigate to TableSelectionScreen after splash
+    Future.delayed(const Duration(milliseconds: 2600), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
-            transitionDuration: const Duration(milliseconds: 500),
+            transitionDuration: const Duration(milliseconds: 600),
           ),
         );
       }
@@ -57,7 +57,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -77,67 +76,63 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Restaurant Logo Icon with Golden Glow
                       Container(
-                        padding: const EdgeInsets.all(26),
+                        padding: const EdgeInsets.all(28),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: const Color(0xFFF59E0B).withOpacity(0.15),
                           border: Border.all(color: const Color(0xFFF59E0B), width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFF59E0B).withOpacity(0.35),
-                              blurRadius: 28,
-                              spreadRadius: 4,
+                              color: const Color(0xFFF59E0B).withOpacity(0.3),
+                              blurRadius: 30,
+                              spreadRadius: 5,
                             ),
                           ],
                         ),
                         child: const Icon(
                           Icons.restaurant_menu_rounded,
-                          size: 60,
+                          size: 64,
                           color: Color(0xFFF59E0B),
                         ),
                       ),
                       const SizedBox(height: 24),
-                      // App Name
                       const Text(
                         'miTHOBITE',
                         style: TextStyle(
-                          fontSize: 34,
+                          fontSize: 36,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          letterSpacing: 2.0,
+                          letterSpacing: 1.5,
                           fontFamily: 'Roboto',
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Subtitle / Tagline
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.star, size: 13, color: Color(0xFFF59E0B)),
+                          Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
                           SizedBox(width: 6),
                           Text(
-                            'RESTAURANT POS & MANAGEMENT',
+                            'AUTHENTIC TASTE & HOSPITALITY',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFFF59E0B),
+                              color: Colors.amberAccent,
                               letterSpacing: 2.0,
                             ),
                           ),
                           SizedBox(width: 6),
-                          Icon(Icons.star, size: 13, color: Color(0xFFF59E0B)),
+                          Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
                         ],
                       ),
                       const SizedBox(height: 48),
-                      // Loading indicator
                       const SizedBox(
-                        width: 28,
-                        height: 28,
+                        width: 32,
+                        height: 32,
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
-                          strokeWidth: 2.5,
+                          strokeWidth: 3,
                         ),
                       ),
                     ],
