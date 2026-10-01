@@ -6,6 +6,7 @@ class NepaliPaymentDialog extends StatefulWidget {
   final String orderId;
   final int tableNumber;
   final Function(String paymentMethod, String txnRef) onPaymentSuccess;
+  final Function(double cashPart, double digitalPart, String digitalWallet, String txnRef)? onSplitSuccess;
 
   NepaliPaymentDialog({
     super.key,
@@ -14,6 +15,7 @@ class NepaliPaymentDialog extends StatefulWidget {
     required this.orderId,
     required this.tableNumber,
     required this.onPaymentSuccess,
+    this.onSplitSuccess,
   }) : amount = amount ?? totalAmount ?? 0.0;
 
   @override
@@ -23,6 +25,10 @@ class NepaliPaymentDialog extends StatefulWidget {
 class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
   String _selectedWallet = 'eSewa';
   bool _isProcessing = false;
+  bool _isSplitMode = false;
+
+  late TextEditingController _splitCashCtrl;
+  late TextEditingController _splitDigitalCtrl;
 
   final Map<String, Color> _walletColors = {
     'eSewa': const Color(0xFF60BB46),
@@ -33,22 +39,43 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    final half = widget.amount / 2.0;
+    _splitCashCtrl = TextEditingController(text: half.toStringAsFixed(0));
+    _splitDigitalCtrl = TextEditingController(text: (widget.amount - half).toStringAsFixed(0));
+  }
+
+  @override
+  void dispose() {
+    _splitCashCtrl.dispose();
+    _splitDigitalCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onCashChanged(String val) {
+    final cash = double.tryParse(val) ?? 0.0;
+    final remaining = (widget.amount - cash).clamp(0.0, widget.amount);
+    _splitDigitalCtrl.text = remaining.toStringAsFixed(0);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: const Color(0xFF1E293B),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
+              // Header with close button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Nepali QR & Payment',
+                    'Nepali Payment & Split Bill',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                   ),
                   IconButton(
@@ -57,7 +84,7 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
               // Total Amount Card
               Container(
@@ -79,7 +106,109 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              // Full Payment / Split Bill Toggle Mode
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _isSplitMode = false),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: !_isSplitMode ? const Color(0xFFF59E0B) : const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: !_isSplitMode ? const Color(0xFFF59E0B) : const Color(0xFF334155)),
+                        ),
+                        child: Text(
+                          'Full Payment (१००%)',
+                          style: TextStyle(
+                            color: !_isSplitMode ? Colors.black : Colors.white70,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _isSplitMode = true),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: _isSplitMode ? const Color(0xFF3B82F6) : const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: _isSplitMode ? const Color(0xFF3B82F6) : const Color(0xFF334155)),
+                        ),
+                        child: Text(
+                          'Split Bill (आधा-आधा)',
+                          style: TextStyle(
+                            color: _isSplitMode ? Colors.white : Colors.white70,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              if (_isSplitMode) ...[
+                // Split Bill Form
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.5)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('1. Physical Cash Amount (रु.):', style: TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: _splitCashCtrl,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFF1E293B),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          isDense: true,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                        ),
+                        onChanged: _onCashChanged,
+                      ),
+                      const SizedBox(height: 10),
+                      const Text('2. Digital QR Wallet Amount (रु.):', style: TextStyle(color: Color(0xFFF59E0B), fontSize: 11, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: _splitDigitalCtrl,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFF1E293B),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          isDense: true,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
 
               // Payment Method Tabs
               SingleChildScrollView(
@@ -95,7 +224,7 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
                         borderRadius: BorderRadius.circular(10),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                             color: isSelected ? color : const Color(0xFF0F172A),
                             borderRadius: BorderRadius.circular(10),
@@ -109,7 +238,7 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
                             style: TextStyle(
                               color: isSelected ? Colors.white : Colors.white70,
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
                         ),
@@ -118,73 +247,60 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
                   }).toList(),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // QR Code Display / Cash Input
+              // QR Code / Cash Info
               if (_selectedWallet == 'Cash')
                 Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(12)),
                   child: Column(
                     children: const [
-                      Icon(Icons.payments_rounded, color: Color(0xFF10B981), size: 48),
-                      SizedBox(height: 8),
-                      Text('Accept Physical Cash at Counter', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                      Text('Hand change and click confirm payment', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                      Icon(Icons.payments_rounded, color: Color(0xFF10B981), size: 40),
+                      SizedBox(height: 6),
+                      Text('Accept Physical Cash at Counter', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
                   ),
                 )
               else if (_selectedWallet == 'Card')
                 Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(12)),
                   child: Column(
                     children: const [
-                      Icon(Icons.credit_card_rounded, color: Color(0xFF3B82F6), size: 48),
-                      SizedBox(height: 8),
-                      Text('POS Swipe Machine / NFC Tap', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                      Text('Accept Visa / Mastercard / SCT', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                      Icon(Icons.credit_card_rounded, color: Color(0xFF3B82F6), size: 40),
+                      SizedBox(height: 6),
+                      Text('POS Swipe Machine / NFC Tap', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
                   ),
                 )
               else
-                // Dynamic QR Simulation
                 Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                         decoration: BoxDecoration(
                           color: _walletColors[_selectedWallet],
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           'Scan to Pay with $_selectedWallet',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Icon(Icons.qr_code_2_rounded, size: 140, color: _walletColors[_selectedWallet] ?? Colors.black),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
+                      Icon(Icons.qr_code_2_rounded, size: 120, color: _walletColors[_selectedWallet] ?? Colors.black),
                       Text(
                         'Merchant: Himalayan Restaurant',
-                        style: TextStyle(color: Colors.grey.shade800, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.grey.shade800, fontSize: 9, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Confirm Button
               SizedBox(
@@ -200,12 +316,20 @@ class _NepaliPaymentDialogState extends State<NepaliPaymentDialog> {
                       : () {
                           setState(() => _isProcessing = true);
                           final txnRef = '${_selectedWallet.toUpperCase()}-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
-                          widget.onPaymentSuccess(_selectedWallet, txnRef);
+                          if (_isSplitMode && widget.onSplitSuccess != null) {
+                            final cashPart = double.tryParse(_splitCashCtrl.text) ?? 0.0;
+                            final digPart = double.tryParse(_splitDigitalCtrl.text) ?? 0.0;
+                            widget.onSplitSuccess!(cashPart, digPart, _selectedWallet, txnRef);
+                          } else {
+                            widget.onPaymentSuccess(_selectedWallet, txnRef);
+                          }
                         },
                   child: _isProcessing
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : Text(
-                          'CONFIRM RS. ${widget.amount.toStringAsFixed(0)} VIA $_selectedWallet',
+                          _isSplitMode
+                              ? 'CONFIRM SPLIT PAYMENT'
+                              : 'CONFIRM RS. ${widget.amount.toStringAsFixed(0)} VIA $_selectedWallet',
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                 ),

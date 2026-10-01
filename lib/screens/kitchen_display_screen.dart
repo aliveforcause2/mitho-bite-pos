@@ -1,340 +1,302 @@
 // lib/screens/kitchen_display_screen.dart
-
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/order_model.dart';
 import '../providers/pos_provider.dart';
-import 'billing_checkout_screen.dart';
 
-class KitchenDisplayScreen extends StatefulWidget {
+class KitchenDisplayScreen extends StatelessWidget {
   const KitchenDisplayScreen({super.key});
-
-  @override
-  State<KitchenDisplayScreen> createState() => _KitchenDisplayScreenState();
-}
-
-class _KitchenDisplayScreenState extends State<KitchenDisplayScreen> {
-  Timer? _ticker;
-  String _filter = 'all'; // 'all', 'pending', 'preparing', 'served'
-
-  @override
-  void initState() {
-    super.initState();
-    // Update elapsed minutes counter every 30 seconds
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _ticker?.cancel();
-    super.dispose();
-  }
-
-  String _formatElapsed(DateTime timestamp) {
-    final diff = DateTime.now().difference(timestamp);
-    if (diff.inMinutes < 1) return 'Just now (<1m)';
-    if (diff.inHours > 0) return '${diff.inHours}h ${diff.inMinutes % 60}m ago';
-    return '${diff.inMinutes}m ago';
-  }
-
-  Color _getTimerColor(DateTime timestamp) {
-    final minutes = DateTime.now().difference(timestamp).inMinutes;
-    if (minutes >= 20) return const Color(0xFFEF4444); // Urgent red
-    if (minutes >= 10) return const Color(0xFFF59E0B); // Amber warning
-    return const Color(0xFF10B981); // Normal green
-  }
 
   @override
   Widget build(BuildContext context) {
     final pos = context.watch<PosProvider>();
-    // Exclude paid orders from active kitchen queue
-    final activeOrders = pos.activeOrders
-        .where((o) => o.status != OrderStatus.paid)
-        .where((o) => _filter == 'all' || o.status.name == _filter)
-        .toList();
+    final activeOrders = pos.activeOrders;
+    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Dark Kitchen Terminal Slate
+      backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E293B),
         title: Row(
           children: [
-            const Icon(Icons.soup_kitchen_rounded, color: Color(0xFFFF9800)),
-            const SizedBox(width: 10),
+            const Icon(Icons.soup_kitchen_rounded, color: Color(0xFFF59E0B)),
+            const SizedBox(width: 8),
             const Text(
-              'Kitchen Display System (KDS)',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              'Kitchen Display (KDS)',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),
             ),
-            const Spacer(),
-            // Filter Chips
-            _buildFilterChip('All', 'all'),
-            const SizedBox(width: 6),
-            _buildFilterChip('Pending', 'pending', badgeColor: const Color(0xFFEF4444)),
-            const SizedBox(width: 6),
-            _buildFilterChip('Cooking', 'preparing', badgeColor: const Color(0xFFF59E0B)),
-            const SizedBox(width: 6),
-            _buildFilterChip('Ready', 'served', badgeColor: const Color(0xFF10B981)),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${activeOrders.length} LIVE KOT',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+              ),
+            ),
           ],
         ),
       ),
       body: activeOrders.isEmpty
-          ? Center(
+          ? const Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle_outline, size: 64, color: Colors.white.withOpacity(0.3)),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'All Kitchen Tickets Cleared!',
-                    style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Incoming orders from waiters will appear here in real-time.',
-                    style: TextStyle(color: Colors.white38, fontSize: 13),
-                  ),
+                  Icon(Icons.check_circle_outline_rounded, size: 64, color: Color(0xFF10B981)),
+                  SizedBox(height: 12),
+                  Text('All Kitchen Orders Cleared!', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('New KOT tickets will appear here automatically', style: TextStyle(color: Colors.white54, fontSize: 12)),
                 ],
               ),
             )
           : GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3, // 3 columns for tablet/kitchen screen, 1-2 on mobile
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.85,
+              padding: const EdgeInsets.all(12),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: isWide ? 3 : 1,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: isWide ? 0.95 : 1.45,
               ),
               itemCount: activeOrders.length,
               itemBuilder: (context, index) {
                 final order = activeOrders[index];
-                return _buildOrderTicket(context, order, pos);
-              },
-            ),
-    );
-  }
+                final elapsedMins = DateTime.now().difference(order.timestamp).inMinutes;
 
-  Widget _buildFilterChip(String label, String value, {Color? badgeColor}) {
-    final isSelected = _filter == value;
-    return InkWell(
-      onTap: () => setState(() => _filter = value),
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFF9800) : const Color(0xFF334155),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.black : Colors.white70,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-          ),
-        ),
-      ),
-    );
-  }
+                Color statusColor = const Color(0xFFEF4444);
+                String statusLabel = 'NEW / PENDING';
+                if (order.status == OrderStatus.preparing) {
+                  statusColor = const Color(0xFFF59E0B);
+                  statusLabel = 'COOKING NOW';
+                } else if (order.status == OrderStatus.served) {
+                  statusColor = const Color(0xFF10B981);
+                  statusLabel = 'READY TO SERVE';
+                }
 
-  Widget _buildOrderTicket(BuildContext context, OrderModel order, PosProvider pos) {
-    final isPending = order.status == OrderStatus.pending;
-    final isPreparing = order.status == OrderStatus.preparing;
-    final isServed = order.status == OrderStatus.served;
-
-    Color borderColor;
-    if (isPending) {
-      borderColor = const Color(0xFFEF4444);
-    } else if (isPreparing) {
-      borderColor = const Color(0xFFF59E0B);
-    } else {
-      borderColor = const Color(0xFF10B981);
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: borderColor.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header: Table Number & Elapsed Timer
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: borderColor.withOpacity(0.12),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.black45,
-                      child: Text(
-                        'T${order.tableNumber}',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Table #${order.tableNumber}',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ],
-                ),
-                // Elapsed Timer Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black45,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: _getTimerColor(order.timestamp), width: 1),
+                return Card(
+                  color: const Color(0xFF1E293B),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: statusColor, width: 2),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.timer_outlined, size: 13, color: _getTimerColor(order.timestamp)),
-                      const SizedBox(width: 4),
-                      Text(
-                        _formatElapsed(order.timestamp),
-                        style: TextStyle(
-                          color: _getTimerColor(order.timestamp),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Items List
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(12),
-              itemCount: order.itemsList.length,
-              separatorBuilder: (_, __) => const Divider(color: Colors.white10, height: 12),
-              itemBuilder: (context, idx) {
-                final item = order.itemsList[idx];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF9800).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            '${item.quantity}x',
-                            style: const TextStyle(color: Color(0xFFFF9800), fontWeight: FontWeight.bold, fontSize: 13),
+                        // KOT Header: Table, Order ID & Timer
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0F172A),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFF334155)),
+                                  ),
+                                  child: Text(
+                                    'TABLE T-${order.tableNumber}',
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text('#${order.orderId}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                              decoration: BoxDecoration(
+                                color: elapsedMins > 15 ? Colors.red.shade900 : Colors.black45,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.timer_outlined, size: 12, color: elapsedMins > 15 ? Colors.redAccent : Colors.amber),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '${elapsedMins}m ago',
+                                    style: TextStyle(
+                                      color: elapsedMins > 15 ? Colors.redAccent : Colors.amber,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+
+                        // Waiter / Server Name
+                        Row(
+                          children: [
+                            const Icon(Icons.person_pin_rounded, color: Color(0xFFF59E0B), size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Server: ${order.serverName ?? "Bikash Shrestha"}',
+                              style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                        const Divider(color: Colors.white12, height: 12),
+
+                        // Order Items List
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: order.itemsList.length,
+                            itemBuilder: (ctx, i) {
+                              final item = order.itemsList[i];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 2),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF334155),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        '${item.quantity}x',
+                                        style: const TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.bold, fontSize: 12),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        item.name,
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            item.name,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+
+                        // Kitchen Special Note if any
+                        if (order.kitchenNote != null && order.kitchenNote!.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.edit_note_rounded, color: Color(0xFFF59E0B), size: 14),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    'Note: ${order.kitchenNote}',
+                                    style: const TextStyle(color: Colors.white70, fontSize: 11, fontStyle: FontStyle.italic),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+
+                        // Cook / Chef Selector
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFF334155)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.soup_kitchen_rounded, color: Color(0xFFF59E0B), size: 14),
+                                  SizedBox(width: 4),
+                                  Text('Cook / Chef:', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                                ],
+                              ),
+                              DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: order.cookName ?? pos.chefList.first,
+                                  dropdownColor: const Color(0xFF1E293B),
+                                  icon: const Icon(Icons.arrow_drop_down, color: Color(0xFFF59E0B), size: 16),
+                                  items: pos.chefList.map((chef) {
+                                    return DropdownMenuItem(
+                                      value: chef,
+                                      child: Text(chef, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                    );
+                                  }).toList(),
+                                  onChanged: (newChef) {
+                                    if (newChef != null) pos.assignCookToOrder(order.orderId, newChef);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Status Stepper Buttons
+                        Row(
+                          children: [
+                            if (order.status == OrderStatus.pending)
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFF59E0B),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                  icon: const Icon(Icons.local_fire_department_rounded, color: Colors.black, size: 16),
+                                  label: const Text('Start Cooking', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  onPressed: () => pos.updateOrderStatus(order.orderId, OrderStatus.preparing),
+                                ),
+                              )
+                            else if (order.status == OrderStatus.preparing)
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF10B981),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                  icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                                  label: const Text('Mark Food Ready', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  onPressed: () => pos.updateOrderStatus(order.orderId, OrderStatus.served),
+                                ),
+                              )
+                            else
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFF10B981)),
+                                  ),
+                                  child: const Text('READY AT PICKUP COUNTER', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 11)),
+                                ),
+                              ),
+                          ],
                         ),
                       ],
                     ),
-                    if (item.specialInstructions != null && item.specialInstructions!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 32, top: 4),
-                        child: Text(
-                          'Note: "${item.specialInstructions}"',
-                          style: const TextStyle(color: Color(0xFFFBBF24), fontStyle: FontStyle.italic, fontSize: 12),
-                        ),
-                      ),
-                  ],
+                  ),
                 );
               },
             ),
-          ),
-
-          // Kitchen Note
-          if (order.kitchenNote != null && order.kitchenNote!.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
-              ),
-              child: Text(
-                'Note: ${order.kitchenNote}',
-                style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-            ),
-
-          // Action Status Button
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: isPending
-                ? ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF59E0B),
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    onPressed: () => pos.updateOrderStatus(order.orderId, OrderStatus.preparing),
-                    icon: const Icon(Icons.whatshot, size: 18),
-                    label: const Text('MARK COOKING', style: TextStyle(fontWeight: FontWeight.bold)),
-                  )
-                : isPreparing
-                    ? ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF10B981),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        onPressed: () => pos.updateOrderStatus(order.orderId, OrderStatus.served),
-                        icon: const Icon(Icons.done_all, size: 18),
-                        label: const Text('MARK READY TO SERVE', style: TextStyle(fontWeight: FontWeight.bold)),
-                      )
-                    : ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3B82F6),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => BillingCheckoutScreen(order: order),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.receipt_long, size: 18),
-                        label: const Text('CHECKOUT & BILL', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-          ),
-        ],
-      ),
     );
   }
 }

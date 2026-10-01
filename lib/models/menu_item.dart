@@ -5,13 +5,15 @@ class MenuItem {
   final String category;
   final double price;
   final double costPrice;
-  final bool isAvailable;
-  final int stockQuantity;
-  final int lowStockThreshold;
   final String? description;
   final String? imageUrl;
+  final bool isAvailable;
   final bool isVeg;
-  final int spicyLevel;
+  final bool isVegan;
+  final bool isBestseller;
+  final int spicyLevel; // 0: None, 1: Mild, 2: Medium, 3: Hot
+  final int prepTimeMinutes;
+  final double rating;
 
   MenuItem({
     required this.id,
@@ -19,32 +21,33 @@ class MenuItem {
     required this.category,
     required this.price,
     this.costPrice = 0.0,
-    this.isAvailable = true,
-    this.stockQuantity = 25,
-    this.lowStockThreshold = 5,
     this.description,
     this.imageUrl,
+    this.isAvailable = true,
     this.isVeg = false,
-    this.spicyLevel = 1,
+    this.isVegan = false,
+    this.isBestseller = false,
+    this.spicyLevel = 0,
+    this.prepTimeMinutes = 12,
+    this.rating = 4.8,
   });
-
-  bool get isLowStock => stockQuantity <= lowStockThreshold && stockQuantity > 0;
-  bool get isOutOfStock => stockQuantity <= 0 || !isAvailable;
 
   factory MenuItem.fromMap(Map<String, dynamic> map, {String? docId}) {
     return MenuItem(
       id: docId ?? map['id'] ?? '',
-      name: map['name'] ?? 'Unnamed Dish',
+      name: map['name'] ?? '',
       category: map['category'] ?? 'General',
       price: (map['price'] is num) ? (map['price'] as num).toDouble() : 0.0,
       costPrice: (map['costPrice'] is num) ? (map['costPrice'] as num).toDouble() : 0.0,
-      isAvailable: map['isAvailable'] ?? true,
-      stockQuantity: map['stockQuantity'] is int ? map['stockQuantity'] as int : 25,
-      lowStockThreshold: map['lowStockThreshold'] is int ? map['lowStockThreshold'] as int : 5,
       description: map['description'],
       imageUrl: map['imageUrl'],
+      isAvailable: map['isAvailable'] ?? true,
       isVeg: map['isVeg'] ?? false,
-      spicyLevel: map['spicyLevel'] is int ? map['spicyLevel'] as int : 1,
+      isVegan: map['isVegan'] ?? false,
+      isBestseller: map['isBestseller'] ?? false,
+      spicyLevel: (map['spicyLevel'] is num) ? (map['spicyLevel'] as num).toInt() : 0,
+      prepTimeMinutes: (map['prepTimeMinutes'] is num) ? (map['prepTimeMinutes'] as num).toInt() : 12,
+      rating: (map['rating'] is num) ? (map['rating'] as num).toDouble() : 4.8,
     );
   }
 
@@ -55,13 +58,15 @@ class MenuItem {
       'category': category,
       'price': price,
       'costPrice': costPrice,
-      'isAvailable': isAvailable,
-      'stockQuantity': stockQuantity,
-      'lowStockThreshold': lowStockThreshold,
       'description': description,
       'imageUrl': imageUrl,
+      'isAvailable': isAvailable,
       'isVeg': isVeg,
+      'isVegan': isVegan,
+      'isBestseller': isBestseller,
       'spicyLevel': spicyLevel,
+      'prepTimeMinutes': prepTimeMinutes,
+      'rating': rating,
     };
   }
 
@@ -71,13 +76,15 @@ class MenuItem {
     String? category,
     double? price,
     double? costPrice,
-    bool? isAvailable,
-    int? stockQuantity,
-    int? lowStockThreshold,
     String? description,
     String? imageUrl,
+    bool? isAvailable,
     bool? isVeg,
+    bool? isVegan,
+    bool? isBestseller,
     int? spicyLevel,
+    int? prepTimeMinutes,
+    double? rating,
   }) {
     return MenuItem(
       id: id ?? this.id,
@@ -85,13 +92,15 @@ class MenuItem {
       category: category ?? this.category,
       price: price ?? this.price,
       costPrice: costPrice ?? this.costPrice,
-      isAvailable: isAvailable ?? this.isAvailable,
-      stockQuantity: stockQuantity ?? this.stockQuantity,
-      lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
+      isAvailable: isAvailable ?? this.isAvailable,
       isVeg: isVeg ?? this.isVeg,
+      isVegan: isVegan ?? this.isVegan,
+      isBestseller: isBestseller ?? this.isBestseller,
       spicyLevel: spicyLevel ?? this.spicyLevel,
+      prepTimeMinutes: prepTimeMinutes ?? this.prepTimeMinutes,
+      rating: rating ?? this.rating,
     );
   }
 }

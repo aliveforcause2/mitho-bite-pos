@@ -68,9 +68,14 @@ class OrderModel {
   final DateTime timestamp;
   final String? kitchenNote;
   final String? serverName;
+  final String? cookName;
   final String? paymentMethod;
   final String? transactionRef;
   final String? settledAt;
+  final bool isSplitPayment;
+  final double splitCashAmount;
+  final double splitDigitalAmount;
+  final String? splitDigitalWallet;
 
   OrderModel({
     required this.orderId,
@@ -85,9 +90,14 @@ class OrderModel {
     required this.timestamp,
     this.kitchenNote,
     this.serverName,
+    this.cookName,
     this.paymentMethod,
     this.transactionRef,
     this.settledAt,
+    this.isSplitPayment = false,
+    this.splitCashAmount = 0.0,
+    this.splitDigitalAmount = 0.0,
+    this.splitDigitalWallet,
   });
 
   factory OrderModel.fromMap(Map<String, dynamic> map, {String? docId}) {
@@ -134,10 +144,15 @@ class OrderModel {
       status: parsedStatus,
       timestamp: parsedTimestamp,
       kitchenNote: map['kitchenNote'],
-      serverName: map['serverName'],
+      serverName: map['serverName'] ?? 'Bikash Shrestha',
+      cookName: map['cookName'],
       paymentMethod: map['paymentMethod'],
       transactionRef: map['transactionRef'],
       settledAt: map['settledAt'],
+      isSplitPayment: map['isSplitPayment'] ?? false,
+      splitCashAmount: (map['splitCashAmount'] is num) ? (map['splitCashAmount'] as num).toDouble() : 0.0,
+      splitDigitalAmount: (map['splitDigitalAmount'] is num) ? (map['splitDigitalAmount'] as num).toDouble() : 0.0,
+      splitDigitalWallet: map['splitDigitalWallet'],
     );
   }
 
@@ -155,9 +170,14 @@ class OrderModel {
       'timestamp': timestamp.toIso8601String(),
       'kitchenNote': kitchenNote,
       'serverName': serverName,
+      'cookName': cookName,
       'paymentMethod': paymentMethod,
       'transactionRef': transactionRef,
       'settledAt': settledAt,
+      'isSplitPayment': isSplitPayment,
+      'splitCashAmount': splitCashAmount,
+      'splitDigitalAmount': splitDigitalAmount,
+      'splitDigitalWallet': splitDigitalWallet,
     };
   }
 
@@ -174,9 +194,14 @@ class OrderModel {
     DateTime? timestamp,
     String? kitchenNote,
     String? serverName,
+    String? cookName,
     String? paymentMethod,
     String? transactionRef,
     String? settledAt,
+    bool? isSplitPayment,
+    double? splitCashAmount,
+    double? splitDigitalAmount,
+    String? splitDigitalWallet,
   }) {
     return OrderModel(
       orderId: orderId ?? this.orderId,
@@ -191,9 +216,14 @@ class OrderModel {
       timestamp: timestamp ?? this.timestamp,
       kitchenNote: kitchenNote ?? this.kitchenNote,
       serverName: serverName ?? this.serverName,
+      cookName: cookName ?? this.cookName,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       transactionRef: transactionRef ?? this.transactionRef,
       settledAt: settledAt ?? this.settledAt,
+      isSplitPayment: isSplitPayment ?? this.isSplitPayment,
+      splitCashAmount: splitCashAmount ?? this.splitCashAmount,
+      splitDigitalAmount: splitDigitalAmount ?? this.splitDigitalAmount,
+      splitDigitalWallet: splitDigitalWallet ?? this.splitDigitalWallet,
     );
   }
 }
