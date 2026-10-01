@@ -1,20 +1,19 @@
 // lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'providers/pos_provider.dart';
-import 'screens/table_selection_screen.dart';
+import 'screens/splash_screen.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Firebase (Requires google-services.json for Android)
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint('Firebase initialized in offline/demo mode: $e');
-  }
+  
+  // Initialize Firebase in the background without blocking UI startup
+  Firebase.initializeApp().then((_) {
+    debugPrint('Firebase initialized successfully in background');
+  }).catchError((e) {
+    debugPrint('Firebase init error (running offline): $e');
+  });
 
   runApp(
     MultiProvider(
@@ -23,18 +22,18 @@ void main() async {
           create: (_) => PosProvider()..initFirestoreStreams(),
         ),
       ],
-      child: const HimalayanPosApp(),
+      child: const MithoBiteApp(),
     ),
   );
 }
 
-class HimalayanPosApp extends StatelessWidget {
-  const HimalayanPosApp({super.key});
+class MithoBiteApp extends StatelessWidget {
+  const MithoBiteApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Himalayan POS',
+      title: 'miTHOBITE',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
@@ -47,7 +46,7 @@ class HimalayanPosApp extends StatelessWidget {
         ),
         fontFamily: 'Roboto',
       ),
-      home: const TableSelectionScreen(),
+      home: const SplashScreen(),
     );
   }
 }

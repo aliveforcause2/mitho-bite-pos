@@ -1,0 +1,255 @@
+{
+  "menu_items": {
+    "momo-01": {
+      "id": "momo-01",
+      "name": "Steamed Buff Mo:Mo (10 pcs)",
+      "category": "Mo:Mo Specials",
+      "price": 320.0,
+      "stockQuantity": 28,
+      "lowStockThreshold": 5,
+      "isAvailable": true,
+      "description": "Traditional spiced buffalo dumplings with tomato-sesame achar",
+      "isVeg": false,
+      "spicyLevel": 1
+    },
+    "momo-02": {
+      "id": "momo-02",
+      "name": "Chicken Kothey Mo:Mo (10 pcs)",
+      "category": "Mo:Mo Specials",
+      "price": 350.0,
+      "stockQuantity": 14,
+      "lowStockThreshold": 5,
+      "isAvailable": true,
+      "description": "Pan-fried crispy bottom dumplings stuffed with tender minced chicken & herbs",
+      "isVeg": false,
+      "spicyLevel": 1
+    },
+    "momo-03": {
+      "id": "momo-03",
+      "name": "Spicy Jhol Mo:Mo (Buff/Chicken)",
+      "category": "Mo:Mo Specials",
+      "price": 380.0,
+      "stockQuantity": 4,
+      "lowStockThreshold": 5,
+      "isAvailable": true,
+      "description": "Dumplings drowned in a tangy, chilled or hot roasted soybean, sesame and hog plum gravy",
+      "isVeg": false,
+      "spicyLevel": 2
+    },
+    "momo-04": {
+      "id": "momo-04",
+      "name": "C-Mo:Mo (Chilli Mo:Mo)",
+      "category": "Mo:Mo Specials",
+      "price": 400.0,
+      "stockQuantity": 19,
+      "lowStockThreshold": 5,
+      "isAvailable": true,
+      "description": "Deep-fried dumplings tossed in sizzling capsicum, onion, green chilli, and garlic sauce",
+      "isVeg": false,
+      "spicyLevel": 3
+    },
+    "chw-01": {
+      "id": "chw-01",
+      "name": "Nepali Chicken Chowmein",
+      "category": "Noodles & Chowmein",
+      "price": 280.0,
+      "stockQuantity": 22,
+      "lowStockThreshold": 5,
+      "isAvailable": true,
+      "description": "Wok-tossed noodles with shredded chicken and crunchy greens",
+      "isVeg": false,
+      "spicyLevel": 1
+    },
+    "khaja-01": {
+      "id": "khaja-01",
+      "name": "Newari Samay Baji Platter",
+      "category": "Khaja & Platters",
+      "price": 520.0,
+      "stockQuantity": 12,
+      "lowStockThreshold": 5,
+      "isAvailable": true,
+      "description": "Beaten rice, buff chhwela, spicy potato, black soybeans, and boiled egg",
+      "isVeg": false,
+      "spicyLevel": 2
+    },
+    "curry-01": {
+      "id": "curry-01",
+      "name": "Authentic Nepali Thakali Mutton Thali",
+      "category": "Curry & Rice",
+      "price": 680.0,
+      "stockQuantity": 10,
+      "lowStockThreshold": 4,
+      "isAvailable": true,
+      "description": "Tender goat curry, buckwheat dhiro/steamed rice, black lentil dal, and ghee",
+      "isVeg": false,
+      "spicyLevel": 1
+    },
+    "bev-01": {
+      "id": "bev-01",
+      "name": "Hot Himalayan Masala Chiya",
+      "category": "Beverages & Desserts",
+      "price": 90.0,
+      "stockQuantity": 60,
+      "lowStockThreshold": 10,
+      "isAvailable": true,
+      "description": "Brewed milk tea infused with cardamom, clove, cinnamon, and fresh ginger",
+      "isVeg": true,
+      "spicyLevel": 0
+    },
+    "bev-02": {
+      "id": "bev-02",
+      "name": "Fresh Sweet Mango Lassi",
+      "category": "Beverages & Desserts",
+      "price": 180.0,
+      "stockQuantity": 24,
+      "lowStockThreshold": 5,
+      "isAvailable": true,
+      "description": "Thick churned fresh curd blended with ripe alphonso pulp and pistachio shavings",
+      "isVeg": true,
+      "spicyLevel": 0
+    }
+  },
+  "tables": {
+    "table_1": {
+      "tableNumber": 1,
+      "seatingCapacity": 2,
+      "status": "available",
+      "currentOrderId": null,
+      "occupiedSince": null
+    },
+    "table_2": {
+      "tableNumber": 2,
+      "seatingCapacity": 4,
+      "status": "available",
+      "currentOrderId": null,
+      "occupiedSince": null
+    },
+    "table_3": {
+      "tableNumber": 3,
+      "seatingCapacity": 4,
+      "status": "occupied",
+      "currentOrderId": "ORD-1001",
+      "occupiedSince": "2026-09-29T12:45:00Z"
+    },
+    "table_6": {
+      "tableNumber": 6,
+      "seatingCapacity": 8,
+      "status": "occupied",
+      "currentOrderId": "ORD-1002",
+      "occupiedSince": "2026-09-29T13:10:00Z"
+    }
+  },
+  "orders": {
+    "ORD-1001": {
+      "orderId": "ORD-1001",
+      "tableNumber": 3,
+      "status": "preparing",
+      "subtotal": 1100.0,
+      "taxAmount": 143.0,
+      "totalAmount": 1243.0,
+      "discountPercent": 0.0,
+      "discountAmount": 0.0,
+      "kitchenNote": "Chiya served after main food",
+      "serverName": "Bikash Shrestha",
+      "timestamp": "2026-09-29T12:45:12Z",
+      "itemsList": [
+        {
+          "menuItemId": "momo-01",
+          "name": "Steamed Buff Mo:Mo (10 pcs)",
+          "quantity": 2,
+          "price": 320.0,
+          "specialInstructions": "Extra spicy achar"
+        },
+        {
+          "menuItemId": "chw-01",
+          "name": "Nepali Chicken Chowmein",
+          "quantity": 1,
+          "price": 280.0
+        },
+        {
+          "menuItemId": "bev-01",
+          "name": "Hot Himalayan Masala Chiya",
+          "quantity": 2,
+          "price": 90.0
+        }
+      ]
+    },
+    "ORD-901": {
+      "orderId": "ORD-901",
+      "tableNumber": 1,
+      "status": "paid",
+      "subtotal": 820.0,
+      "taxAmount": 106.6,
+      "totalAmount": 926.6,
+      "discountPercent": 0.0,
+      "discountAmount": 0.0,
+      "paymentMethod": "Fonepay (Mobile Banking)",
+      "transactionRef": "TXN-FP-881920",
+      "timestamp": "2026-09-29T11:15:00Z",
+      "settledAt": "2026-09-29T11:50:00Z",
+      "itemsList": [
+        {
+          "menuItemId": "momo-01",
+          "name": "Steamed Buff Mo:Mo (10 pcs)",
+          "quantity": 2,
+          "price": 320.0
+        },
+        {
+          "menuItemId": "bev-01",
+          "name": "Hot Himalayan Masala Chiya",
+          "quantity": 2,
+          "price": 90.0
+        }
+      ]
+    },
+    "ORD-902": {
+      "orderId": "ORD-902",
+      "tableNumber": 5,
+      "status": "paid",
+      "subtotal": 1400.0,
+      "taxAmount": 163.8,
+      "totalAmount": 1423.8,
+      "discountPercent": 10.0,
+      "discountAmount": 140.0,
+      "paymentMethod": "eSewa QR",
+      "transactionRef": "TXN-ES-471203",
+      "timestamp": "2026-09-29T11:45:00Z",
+      "settledAt": "2026-09-29T12:30:00Z",
+      "itemsList": [
+        {
+          "menuItemId": "khaja-01",
+          "name": "Newari Samay Baji Platter",
+          "quantity": 2,
+          "price": 520.0
+        },
+        {
+          "menuItemId": "bev-02",
+          "name": "Fresh Sweet Mango Lassi",
+          "quantity": 2,
+          "price": 180.0
+        }
+      ]
+    }
+  },
+  "daily_sales_reports": {
+    "REP-20260929": {
+      "reportId": "REP-20260929",
+      "date": "2026-09-29",
+      "openedAt": "2026-09-29T08:00:00Z",
+      "closedAt": "2026-09-29T21:00:00Z",
+      "isClosed": true,
+      "totalOrders": 12,
+      "paidOrders": 10,
+      "grossSales": 14200.0,
+      "totalDiscounts": 650.0,
+      "totalVat": 1761.5,
+      "netSales": 15311.5,
+      "cashTotal": 4500.0,
+      "fonepayTotal": 5200.0,
+      "esewaTotal": 3100.0,
+      "khaltiTotal": 1500.0,
+      "cardTotal": 1011.5,
+      "settledBy": "Duty Manager"
+    }
+  }
+}
