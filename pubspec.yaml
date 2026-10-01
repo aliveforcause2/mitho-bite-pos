@@ -1,5 +1,5 @@
-name: himalayan_pos
-description: "A production-grade Restaurant POS and Management App built with Flutter & Firebase."
+name: mitho_bite_pos
+description: "miTHOBITE Restaurant POS and Floor Management App."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,12 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # State Management (simplest & most robust for beginners)
   provider: ^6.1.2
-  # Firebase Backend Integration
   firebase_core: ^3.6.0
   cloud_firestore: ^5.4.4
-  # UI & Utility helpers
   intl: ^0.19.0
   uuid: ^4.5.1
   google_fonts: ^6.2.1
@@ -26,3 +23,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/data/

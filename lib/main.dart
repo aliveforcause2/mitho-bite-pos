@@ -6,25 +6,38 @@ import 'providers/pos_provider.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
+  // 1. Initialize Flutter engine bindings synchronously
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase in the background without blocking UI startup
-  Firebase.initializeApp().then((_) {
-    debugPrint('Firebase initialized successfully in background');
-  }).catchError((e) {
-    debugPrint('Firebase init error (running offline): $e');
-  });
 
+  // 2. Launch UI IMMEDIATELY (Zero delay, Never blocks on network/Firebase)
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => PosProvider()..initFirestoreStreams(),
+          create: (_) => PosProvider(),
         ),
       ],
       child: const MithoBiteApp(),
     ),
   );
+
+  // 3. Initialize Firebase asynchronously in background with safety timeout
+  _initFirebaseInBackground();
+}
+
+void _initFirebaseInBackground() async {
+  try {
+    await Firebase.initializeApp().timeout(
+      const Duration(seconds: 2),
+      onTimeout: () {
+        debugPrint('Firebase init timeout - proceeding in high-speed offline mode');
+        return Firebase.app();
+      },
+    );
+    debugPrint('Firebase initialized in background');
+  } catch (e) {
+    debugPrint('Firebase offline fallback active: $e');
+  }
 }
 
 class MithoBiteApp extends StatelessWidget {
@@ -44,7 +57,6 @@ class MithoBiteApp extends StatelessWidget {
           secondary: Color(0xFF10B981),
           surface: Color(0xFF1E293B),
         ),
-        fontFamily: 'Roboto',
       ),
       home: const SplashScreen(),
     );

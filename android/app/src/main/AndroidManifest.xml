@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
-        android:label="Mitho Bite POS"
+        android:label="miTHOBITE"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -25,7 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Crucial Flutter v2 Embedding Declaration -->
+        <!-- Flutter v2 Embedding -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

@@ -18,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 1600),
       vsync: this,
     );
 
@@ -26,14 +26,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.6, curve: Curves.easeIn)),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.2, 1.0, curve: Curves.easeOutBack)),
     );
 
     _controller.forward();
 
-    // Navigate to TableSelectionScreen after splash
-    Future.delayed(const Duration(milliseconds: 2600), () {
+    // Navigate to TableSelectionScreen after 2.2 seconds
+    Future.delayed(const Duration(milliseconds: 2200), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
-            transitionDuration: const Duration(milliseconds: 600),
+            transitionDuration: const Duration(milliseconds: 500),
           ),
         );
       }
@@ -57,6 +57,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0F172A),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -78,34 +79,34 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     children: [
                       // Restaurant Logo Icon with Golden Glow
                       Container(
-                        padding: const EdgeInsets.all(28),
+                        padding: const EdgeInsets.all(26),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: const Color(0xFFF59E0B).withOpacity(0.15),
                           border: Border.all(color: const Color(0xFFF59E0B), width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFF59E0B).withOpacity(0.3),
-                              blurRadius: 30,
-                              spreadRadius: 5,
+                              color: const Color(0xFFF59E0B).withOpacity(0.35),
+                              blurRadius: 28,
+                              spreadRadius: 4,
                             ),
                           ],
                         ),
                         child: const Icon(
                           Icons.restaurant_menu_rounded,
-                          size: 64,
+                          size: 60,
                           color: Color(0xFFF59E0B),
                         ),
                       ),
                       const SizedBox(height: 24),
-                      // Restaurant Name
+                      // App Name
                       const Text(
-                        'Mitho Bite',
+                        'miTHOBITE',
                         style: TextStyle(
-                          fontSize: 36,
+                          fontSize: 34,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          letterSpacing: 1.5,
+                          letterSpacing: 2.0,
                           fontFamily: 'Roboto',
                         ),
                       ),
@@ -114,29 +115,29 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
+                          Icon(Icons.star, size: 13, color: Color(0xFFF59E0B)),
                           SizedBox(width: 6),
                           Text(
-                            'AUTHENTIC TASTE & HOSPITALITY',
+                            'RESTAURANT POS & MANAGEMENT',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Colors.amberAccent,
+                              color: Color(0xFFF59E0B),
                               letterSpacing: 2.0,
                             ),
                           ),
                           SizedBox(width: 6),
-                          Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
+                          Icon(Icons.star, size: 13, color: Color(0xFFF59E0B)),
                         ],
                       ),
                       const SizedBox(height: 48),
                       // Loading indicator
-                      SizedBox(
-                        width: 32,
-                        height: 32,
+                      const SizedBox(
+                        width: 28,
+                        height: 28,
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFFF59E0B)),
-                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
+                          strokeWidth: 2.5,
                         ),
                       ),
                     ],
