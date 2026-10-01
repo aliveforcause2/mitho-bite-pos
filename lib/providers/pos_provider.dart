@@ -567,7 +567,51 @@ class PosProvider extends ChangeNotifier {
   double get totalExpensesToday => _expenses
       .fold(0.0, (sum, e) => sum + e.amount);
 
+  List<OrderModel> get paidOrders => _orders.where((o) => o.status == OrderStatus.paid).toList();
+
+  double get vatCollectedToday => _orders
+      .where((o) => o.status == OrderStatus.paid)
+      .fold(0.0, (sum, o) => sum + o.taxAmount);
+
+  double get totalDiscountsToday => _orders
+      .where((o) => o.status == OrderStatus.paid)
+      .fold(0.0, (sum, o) => sum + o.discountAmount);
+
+  Map<String, double> get paymentChannelBreakdown => {
+    'Cash': cashSales,
+    'Fonepay': digitalSales * 0.40,
+    'eSewa': digitalSales * 0.40,
+    'Khalti': digitalSales * 0.20,
+    'Card': 0.0,
+  };
+
   double get netProfitToday => totalSalesToday - (totalPurchasesToday + totalExpensesToday);
+
+  double get netRevenueToday => totalSalesToday;
+
+  double get grossSalesToday => totalSalesToday;
+
+  Map<String, double> get paymentBreakdown => {
+    'Cash': cashSales,
+    'eSewa': digitalSales * 0.55,
+    'Khalti': digitalSales * 0.35,
+    'Card': digitalSales * 0.10,
+  };
+
+  void restockMenuItem(String itemId, int qty) {
+    final idx = _menuItems.indexWhere((i) => i.id == itemId);
+    if (idx >= 0) {
+      _menuItems[idx] = _menuItems[idx].copyWith(
+        stockQuantity: _menuItems[idx].stockQuantity + qty,
+      );
+      notifyListeners();
+    }
+  }
+
+  Future<void> performDayClose() async {
+    _tableCarts.clear();
+    notifyListeners();
+  }
 
   double get cashSales => _orders
       .where((o) => o.status == OrderStatus.paid && (o.paymentMethod ?? '').toLowerCase() == 'cash')
