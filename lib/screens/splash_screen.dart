@@ -1,6 +1,6 @@
 // lib/screens/splash_screen.dart
 import 'package:flutter/material.dart';
-import 'table_selection_screen.dart';
+import 'main_navigation_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const TableSelectionScreen(),
+            pageBuilder: (context, animation, secondaryAnimation) => const MainNavigationScreen(),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
