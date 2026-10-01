@@ -262,7 +262,7 @@ class _RoomTableManagementScreenState extends State<RoomTableManagementScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
               onPressed: () {
                 pos.addTable(
-                  tableNumber: tableNum,
+                  tableNum,
                   roomSection: section,
                   seatingCapacity: capacity,
                 );
@@ -364,9 +364,9 @@ class _RoomTableManagementScreenState extends State<RoomTableManagementScreen> {
             onPressed: () {
               if (name.isNotEmpty) {
                 pos.bookTable(
-                  tableNumber: tableNumber,
+                  tableNumber,
                   customerName: name,
-                  phone: phone,
+                  customerPhone: phone,
                   bookingTime: time,
                 );
                 Navigator.pop(ctx);

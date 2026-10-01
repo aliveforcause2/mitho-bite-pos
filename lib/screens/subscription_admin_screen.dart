@@ -211,15 +211,12 @@ class SubscriptionAdminScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
             onPressed: () {
               pos.updateProfile(
-                RestaurantProfile(
-                  restaurantName: name,
-                  panVatNumber: pan,
-                  address: address,
-                  phone: pos.profile.phone,
-                  ownerName: pos.profile.ownerName,
-                  email: pos.profile.email,
-                  tier: pos.profile.tier,
-                ),
+                restaurantName: name,
+                panVatNumber: pan,
+                address: address,
+                phone: pos.profile.phone,
+                ownerName: pos.profile.ownerName,
+                email: pos.profile.email,
               );
               Navigator.pop(ctx);
             },
